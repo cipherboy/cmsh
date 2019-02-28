@@ -1,45 +1,43 @@
-from .var import Variable
-
-def and(left, right):
-    assert isinstance(left, Variable)
-    assert isinstance(right, Variable)
-    assert left.model == right.model
-
+def v_and(left, right):
     mod = left.model
-    new_var = mod.var()
+    transform = mod.build_transform('and', left, right)
+    if mod.has_constraint(transform):
+        return mod.get_constraint(transform)
 
+    new_var = mod.var()
     mod.add_clauses([
         (-left.identifier, -right.identifier, new_var.identifier),
         (left.identifier, -new_var.identifier),
         (right.identifier, -new_var.identifier)
     ])
 
+    mod.add_constraint(transform, new_var)
     return new_var
 
 
-def nand(left, right):
-    assert isinstance(left, Variable)
-    assert isinstance(right, Variable)
-    assert left.model == right.model
-
+def v_nand(left, right):
     mod = left.model
-    new_var = mod.var()
+    transform = mod.build_transform('nand', left, right)
+    if mod.has_constraint(transform):
+        return mod.get_constraint(transform)
 
+    new_var = mod.var()
     mod.add_clauses([
         (-left.identifier, -right.identifier, -new_var.identifier),
         (left.identifier, new_var.identifier),
         (right.identifier, new_var.identifier)
     ])
 
+    mod.add_constraint(transform, new_var)
     return new_var
 
 
-def or(left, right):
-    assert isinstance(left, Variable)
-    assert isinstance(right, Variable)
-    assert left.model == right.model
-
+def v_or(left, right):
     mod = left.model
+    transform = mod.build_transform('or', left, right)
+    if mod.has_constraint(transform):
+        return mod.get_constraint(transform)
+
     new_var = mod.var()
 
     mod.add_clauses([
@@ -48,48 +46,38 @@ def or(left, right):
         (-right.identifier, new_var.identifier)
     ])
 
+    mod.add_constraint(transform, new_var)
     return new_var
 
 
-def nor(left, right):
-    assert isinstance(left, Variable)
-    assert isinstance(right, Variable)
-    assert left.model == right.model
-
+def v_nor(left, right):
     mod = left.model
-    new_var = mod.var()
+    transform = mod.build_transform('nor', left, right)
+    if mod.has_constraint(transform):
+        return mod.get_constraint(transform)
 
+    new_var = mod.var()
     mod.add_clauses([
         (left.identifier, right.identifier, new_var.identifier),
         (-left.identifier, -new_var.identifier),
         (-right.identifier, -new_var.identifier)
     ])
 
+    mod.add_constraint(transform, new_var)
     return new_var
 
 
-def not(var):
-    assert isinstance(var, Variable)
-
-    mod = var.model
-    new_var = mod.var()
-
-    mod.add_clauses([
-        (var.identifier, new_var.identifier),
-        (-var.identifier, -new_var.identifier)
-    ])
-
-    return new_var
+def v_not(var):
+    return var.model.neg_var(var)
 
 
-def xor(left, right):
-    assert isinstance(left, Variable)
-    assert isinstance(right, Variable)
-    assert left.model == right.model
-
+def v_xor(left, right):
     mod = left.model
-    new_var = mod.var()
+    transform = mod.build_transform('xor', left, right)
+    if mod.has_constraint(transform):
+        return mod.get_constraint(transform)
 
+    new_var = mod.var()
     mod.add_clauses([
         (-left.identifier, -right.identifier, -new_var.identifier),
         (left.identifier, right.identifier, -new_var.identifier),
@@ -97,4 +85,5 @@ def xor(left, right):
         (-left.identifier, right.identifier, new_var.identifier),
     ])
 
+    mod.add_constraint(transform, new_var)
     return new_var
