@@ -6,8 +6,10 @@ from .var import NamedVariable
 
 class Model:
     variables = None
-    clauses = None
     constraints = None
+
+    clauses = None
+    added_clauses = None
 
     solver = None
     sat = None
@@ -18,8 +20,10 @@ class Model:
 
     def __init__(self):
         self.variables = {}
-        self.clauses = set()
         self.constraints = {}
+
+        self.clauses = set()
+
         self.solver = Solver()
 
         self.true = self.var()
@@ -59,41 +63,66 @@ class Model:
     def build_transform(self, operator, left, right):
         return '(' + str(left.identifier) + operator + str(right.identifier) + ')'
 
+    def add_assert(self, var):
+        self.add_clause([var])
+
     def add_clause(self, clause):
         resolved_clause = []
         for var in clause:
-            if isinstance(var, int):
+            if isinstance(var, bool):
+                if var:
+                    resolved_clause.append(self.true)
+                else:
+                    resolved_clause.append(self.false)
+            elif isinstance(var, int):
                 resolved_clause.append(var)
             else:
                 resolved_clause.append(var.identifier)
 
         self.clauses.add(tuple(resolved_clause))
-        self.solver.add_clause(resolved_clause)
 
     def add_clauses(self, clauses):
         resolved_clauses = []
         for clause in clauses:
             resolved_clause = []
             for var in clause:
-                if isinstance(var, int):
+                if isinstance(var, bool):
+                    if var:
+                        resolved_clause.append(self.true)
+                    else:
+                        resolved_clause.append(self.false)
+                elif isinstance(var, int):
                     resolved_clause.append(var)
                 else:
                     resolved_clause.append(var.identifier)
             resolved_clauses.append(tuple(resolved_clause))
 
         self.clauses.update(set(resolved_clauses))
-        self.solver.add_clauses(resolved_clauses)
+
+    def negate_solution(self, variables):
+        assert variables
+        var_list = list(variables)
+        bool_vars = list(map(bool, var_list))
+        result = None
+
+        for _index in range(0, len(var_list)):
+            if result is None:
+                result = var_list[_index] != bool_vars[_index]
+            else:
+                result = result | (var_list[_index] != bool_vars[_index])
+
+        return result
 
     def solve(self):
-        self.sat, self.solution = self.solver.solve()
+        if self.clauses:
+            self.solver.add_clauses(list(self.clauses))
+            self.clauses = set()
 
-    def print_cnf(self):
-        print("p cnf " + str(len(self.variables)) + " " + str(len(self.clauses)))
-        for clause in self.clauses:
-            print(" ".join(map(str, list(clause) + [0])))
+            self.sat, self.solution = self.solver.solve()
+        return self.sat
 
     def get_value(self, identifier):
-        if not self.sat:
+        if self.clauses or not self.sat:
             return None
 
         return self.solution[identifier]
