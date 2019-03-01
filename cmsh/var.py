@@ -124,9 +124,7 @@ class Variable:
         return self
 
     def __abs__(self):
-        if self.identifier < 0:
-            return b_not(self)
-        return self
+        return abs(self.identifier)
 
     def __hash__(self):
         return self.identifier.__hash__()
