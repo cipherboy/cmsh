@@ -3,6 +3,8 @@ from pycryptosat import Solver
 from .var import Variable
 from .var import NamedVariable
 
+from .vec import Vector
+
 
 class Model:
     variables = None
@@ -44,6 +46,12 @@ class Model:
 
         return new_variable
 
+    def to_vector(self, arr):
+        return Vector(self, vector=arr)
+
+    def vector(self, width):
+        return Vector(self, width=width)
+
     def neg_var(self, var):
         new_variable = Variable(self, identifier=-var.identifier)
         return new_variable
@@ -64,6 +72,9 @@ class Model:
         return '(' + str(left.identifier) + operator + str(right.identifier) + ')'
 
     def add_assert(self, var):
+        if isinstance(var, bool):
+            raise ValueError("Expected Variable or int; got bool: %s" % var)
+
         self.add_clause([var])
 
     def add_clause(self, clause):
@@ -71,9 +82,9 @@ class Model:
         for var in clause:
             if isinstance(var, bool):
                 if var:
-                    resolved_clause.append(self.true)
+                    resolved_clause.append(self.true.identifier)
                 else:
-                    resolved_clause.append(self.false)
+                    resolved_clause.append(self.false.identifier)
             elif isinstance(var, int):
                 resolved_clause.append(var)
             else:
@@ -88,9 +99,9 @@ class Model:
             for var in clause:
                 if isinstance(var, bool):
                     if var:
-                        resolved_clause.append(self.true)
+                        resolved_clause.append(self.true.identifier)
                     else:
-                        resolved_clause.append(self.false)
+                        resolved_clause.append(self.false.identifier)
                 elif isinstance(var, int):
                     resolved_clause.append(var)
                 else:
@@ -118,7 +129,7 @@ class Model:
             self.solver.add_clauses(list(self.clauses))
             self.clauses = set()
 
-            self.sat, self.solution = self.solver.solve()
+        self.sat, self.solution = self.solver.solve()
         return self.sat
 
     def get_value(self, identifier):
