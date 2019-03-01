@@ -23,8 +23,6 @@ def __validate_size(left, l_fixed, right, r_fixed):
     elif r_fixed and r_len < l_len:
         raise ValueError("Value of constant (%d) exceeds size: %d" % (l_len, r_len))
 
-    print(l_len, r_len)
-
     if l_len < r_len:
         prefix = [False] * (r_len - l_len)
         prefix.extend(left)
@@ -46,16 +44,11 @@ def l_and(left, right):
     model = l_model or r_model
 
     result = []
-    have_var = False
     for index in range(0, length):
         item = b_and(l_list[index], r_list[index])
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(model)
+    if model:
         return model.to_vector(result)
 
     return result
@@ -68,16 +61,11 @@ def l_nand(left, right):
     model = l_model or r_model
 
     result = []
-    have_var = False
     for index in range(0, length):
         item = b_nand(l_list[index], r_list[index])
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(model)
+    if model:
         return model.to_vector(result)
 
     return result
@@ -90,16 +78,11 @@ def l_or(left, right):
     model = l_model or r_model
 
     result = []
-    have_var = False
     for index in range(0, length):
         item = b_or(l_list[index], r_list[index])
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(model)
+    if model:
         return model.to_vector(result)
 
     return result
@@ -112,35 +95,25 @@ def l_nor(left, right):
     model = l_model or r_model
 
     result = []
-    have_var = False
     for index in range(0, length):
         item = b_nor(l_list[index], r_list[index])
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(model)
+    if model:
         return model.to_vector(result)
 
     return result
 
 
-def l_not(var):
-    v_list, v_model = __from_arg(var)
+def l_not(vec):
+    v_list, v_model, _ = __from_arg(vec)
 
     result = []
-    have_var = False
     for orig in v_list:
         item = b_not(orig)
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(v_model)
+    if v_model:
         return v_model.to_vector(result)
 
     return result
@@ -153,16 +126,11 @@ def l_xor(left, right):
     model = l_model or r_model
 
     result = []
-    have_var = False
     for index in range(0, length):
         item = b_xor(l_list[index], r_list[index])
         result.append(item)
 
-        if not isinstance(item, bool):
-            have_var = True
-
-    if have_var:
-        assert(model)
+    if model:
         return model.to_vector(result)
 
     return result
