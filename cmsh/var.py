@@ -17,26 +17,6 @@ class Variable:
         self.value = self.model.get_value(self.identifier)
         return self.value
 
-    def __add__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_or(self, other)
-
-    def __sub__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_or(self, b_not(other))
-
-    def __mul__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_and(self, other)
-
-    def __div__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_and(self, b_not(other))
-
     def __and__(self, other):
         if not isinstance(other, (Variable, bool)):
             return NotImplemented
@@ -51,26 +31,6 @@ class Variable:
         if not isinstance(other, (Variable, bool)):
             return NotImplemented
         return b_or(self, other)
-
-    def __radd__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_or(self, other)
-
-    def __rsub__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_or(self, b_not(other))
-
-    def __rmul__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_and(self, other)
-
-    def __rdiv__(self, other):
-        if not isinstance(other, (Variable, bool)):
-            return NotImplemented
-        return b_and(self, b_not(other))
 
     def __rand__(self, other):
         if not isinstance(other, (Variable, bool)):
