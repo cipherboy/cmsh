@@ -110,7 +110,7 @@ def b_ne(left, right):
 
 
 def b_gt(left, right):
-    return b_and(b_eq(left, True), b_eq(left, False))
+    return b_and(b_eq(left, True), b_eq(right, False))
 
 
 def b_ge(left, right):
