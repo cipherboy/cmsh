@@ -3,13 +3,13 @@ from .logic import *
 
 def __from_arg(arg):
     # ret: [Variable:bool], model, is_fixed
-    if isinstance(arg, (list, tuple)):
-        return arg, None, True
-    elif isinstance(arg, int):
+    if isinstance(arg, int):
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
+    elif isinstance(arg, (list, tuple)):
+        return arg, None, True
     else:
-        return arg.variables, arg.model, True
+        return arg, arg.model, True
 
 
 def __validate_size(left, l_fixed, right, r_fixed):
