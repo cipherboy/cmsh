@@ -45,6 +45,7 @@ def test_bool_xor():
 
 
 def test_bool_lt():
+    assert l_lt([], []) == True
     for left in range(0, 3):
         for right in range(0, 3):
             assert l_lt(left, right) == (left < right)

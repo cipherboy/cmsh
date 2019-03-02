@@ -10,7 +10,8 @@ def test_op_and():
             mod = Model()
             l_var = mod.var()
             r_var = mod.var()
-            answer = l_var & r_var
+            l_answer = l_var & r_var
+            r_answer = False & r_var
 
             if left:
                 mod.add_assert(l_var)
@@ -25,7 +26,8 @@ def test_op_and():
             mod.solve()
             assert bool(l_var) == left
             assert bool(r_var) == right
-            assert bool(answer) == b_and(left, right)
+            assert bool(l_answer) == b_and(left, right)
+            assert bool(r_answer) == b_and(False, right)
 
 
 def test_op_nand():
@@ -34,7 +36,8 @@ def test_op_nand():
             mod = Model()
             l_var = mod.var()
             r_var = mod.var()
-            answer = -(l_var & r_var)
+            l_answer = -(l_var & r_var)
+            r_answer = b_not(False & r_var)
 
             if left:
                 mod.add_assert(l_var)
@@ -49,7 +52,8 @@ def test_op_nand():
             mod.solve()
             assert bool(l_var) == left
             assert bool(r_var) == right
-            assert bool(answer) == b_nand(left, right)
+            assert bool(l_answer) == b_nand(left, right)
+            assert bool(r_answer) == b_nand(False, right)
 
 
 def test_op_or():
@@ -58,7 +62,8 @@ def test_op_or():
             mod = Model()
             l_var = mod.var()
             r_var = mod.var()
-            answer = l_var | r_var
+            l_answer = l_var | r_var
+            r_answer = False | r_var
 
             if left:
                 mod.add_assert(l_var)
@@ -73,7 +78,8 @@ def test_op_or():
             mod.solve()
             assert bool(l_var) == left
             assert bool(r_var) == right
-            assert bool(answer) == b_or(left, right)
+            assert bool(l_answer) == b_or(left, right)
+            assert bool(r_answer) == b_or(False, right)
 
 
 def test_op_nor():
@@ -104,7 +110,8 @@ def test_op_not():
     for var in [False, True]:
         mod = Model()
         v_var = mod.var()
-        answer = -v_var
+        neg_answer = -v_var
+        pos_answer = +v_var
 
         if var:
             mod.add_assert(v_var)
@@ -113,7 +120,8 @@ def test_op_not():
 
         mod.solve()
         assert bool(v_var) == var
-        assert bool(answer) == b_not(var)
+        assert bool(neg_answer) == b_not(var)
+        assert bool(pos_answer) == var
 
 
 def test_op_xor():
@@ -122,7 +130,8 @@ def test_op_xor():
             mod = Model()
             l_var = mod.var()
             r_var = mod.var()
-            answer = l_var ^ r_var
+            l_answer = l_var ^ r_var
+            r_answer = False ^ r_var
 
             if left:
                 mod.add_assert(l_var)
@@ -137,7 +146,8 @@ def test_op_xor():
             mod.solve()
             assert bool(l_var) == left
             assert bool(r_var) == right
-            assert bool(answer) == b_xor(left, right)
+            assert bool(l_answer) == b_xor(left, right)
+            assert bool(r_answer) == b_xor(False, right)
 
 
 def test_op_lt():

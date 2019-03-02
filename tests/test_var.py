@@ -1,6 +1,7 @@
 import pytest
 
 import cmsh
+from cmsh.tseitin import *
 
 
 def test_get_value():
@@ -88,3 +89,48 @@ def test_bool():
         bool(b)
 
     assert mod.solve() == False
+
+
+def test_repeated_gates():
+    mod = cmsh.Model()
+    a = mod.var()
+    b = mod.var()
+
+    first_gate = v_and(a, b)
+    second_gate = v_and(a, b)
+    assert repr(first_gate) == repr(second_gate)
+
+    first_gate = v_nand(a, b)
+    second_gate = v_nand(a, b)
+    assert repr(first_gate) == repr(second_gate)
+
+    first_gate = v_or(a, b)
+    second_gate = v_or(a, b)
+    assert repr(first_gate) == repr(second_gate)
+
+    first_gate = v_nor(a, b)
+    second_gate = v_nor(a, b)
+    assert repr(first_gate) == repr(second_gate)
+
+    first_gate = v_xor(a, b)
+    second_gate = v_xor(a, b)
+    assert repr(first_gate) == repr(second_gate)
+
+
+def test_abs():
+    mod = cmsh.Model()
+    a = mod.var()
+    neg_a = -a
+
+    assert int(a) > 0
+    assert int(neg_a) < 0
+    assert abs(a) == abs(neg_a)
+
+
+def test_hashable():
+    mod = cmsh.Model()
+    a = mod.var()
+    b = mod.var()
+    c = mod.var()
+
+    data = set([a, -b, c])
