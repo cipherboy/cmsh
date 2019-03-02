@@ -59,12 +59,14 @@ class Variable:
 
     def __eq__(self, other):
         if not isinstance(other, (Variable, bool)):
-            return NotImplemented
+            msg = "Can't compare Variable with %s" % type(other)
+            raise TypeError(msg)
         return b_eq(self, other)
 
     def __ne__(self, other):
         if not isinstance(other, (Variable, bool)):
-            return NotImplemented
+            msg = "Can't compare Variable with %s" % type(other)
+            raise TypeError(msg)
         return b_ne(self, other)
 
     def __gt__(self, other):
