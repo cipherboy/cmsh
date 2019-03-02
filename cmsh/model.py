@@ -69,7 +69,9 @@ class Model:
         return self.constraints[transform]
 
     def build_transform(self, operator, left, right):
-        return '(' + str(left.identifier) + operator + str(right.identifier) + ')'
+        if abs(int(left)) < abs(int(right)):
+            return '(' + str(left.identifier) + operator + str(right.identifier) + ')'
+        return '(' + str(right.identifier) + operator + str(left.identifier) + ')'
 
     def add_assert(self, var):
         if isinstance(var, bool):
