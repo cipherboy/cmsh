@@ -152,6 +152,9 @@ class Vector:
             return NotImplemented
         return l_ge(self, other)
 
+    def __len__(self):
+        return self.count
+
     def __neg__(self):
         return l_not(self)
 
