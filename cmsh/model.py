@@ -136,4 +136,7 @@ class Model:
         if self.clauses or not self.sat:
             return None
 
-        return self.solution[identifier]
+        if identifier >= 0:
+            return self.solution[identifier]
+
+        return not self.solution[abs(identifier)]
