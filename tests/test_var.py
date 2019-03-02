@@ -117,6 +117,17 @@ def test_repeated_gates():
     assert repr(first_gate) == repr(second_gate)
 
 
+def test_swapped_gates():
+    mod = cmsh.Model()
+    a = mod.var()
+    b = mod.var()
+
+    first_gate = a & b
+    second_gate = b & a
+    assert int(first_gate) == int(second_gate)
+    assert repr(first_gate) == repr(second_gate)
+
+
 def test_abs():
     mod = cmsh.Model()
     a = mod.var()

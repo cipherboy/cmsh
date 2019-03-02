@@ -318,6 +318,10 @@ def test_invalid_usages():
         a > 1
     with pytest.raises(TypeError):
         a >= 1
+    with pytest.raises(TypeError):
+        a == set()
+    with pytest.raises(TypeError):
+        a != set()
 
     b = mod.named_var("Hi")
     assert "Hi" in str(b)
