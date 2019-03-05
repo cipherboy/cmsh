@@ -1,13 +1,18 @@
 from .logic import *
+from .var import Variable
 
 
 def __from_arg(arg):
-    # ret: [Variable:bool], model, is_fixed
+    # ret: [Vector/list/tuple], model, is_fixed
     if isinstance(arg, int):
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
     elif isinstance(arg, (list, tuple)):
-        return arg, None, True
+        model = None
+        for item in arg:
+            if isinstance(item, Variable):
+                model = item.model
+        return arg, model, True
     else:
         return arg, arg.model, True
 
