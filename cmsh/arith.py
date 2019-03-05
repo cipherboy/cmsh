@@ -52,10 +52,25 @@ def sum_array(vec):
 
 
 def flatten(vec, func):
-    v_list, v_model, _ = __from_arg(vec)
+    v_list, _, _ = __from_arg(vec)
 
     result = v_list[0]
     for item in v_list[1:]:
         result = func(result, item)
+
+    return result
+
+
+def splat(var, vec, func):
+    v_list, v_model, _ = __from_arg(vec)
+    if not v_model and isinstance(var, Variable):
+        v_model = var.model
+
+    result = []
+    for item in v_list:
+        result.append(func(var, item))
+
+    if v_model:
+        result = v_model.to_vector(result)
 
     return result

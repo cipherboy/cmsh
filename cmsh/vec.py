@@ -1,5 +1,5 @@
 from .array import *
-from .arith import ripple_carry_adder, sum_array, flatten
+from .arith import ripple_carry_adder, sum_array, flatten, splat
 from .var import Variable
 
 
@@ -58,6 +58,21 @@ class Vector:
 
     def bit_xor(self):
         return flatten(self, b_xor)
+
+    def splat_and(self, var):
+        return splat(var, self, b_and)
+
+    def splat_nand(self, var):
+        return splat(var, self, b_nand)
+
+    def splat_or(self, var):
+        return splat(var, self, b_or)
+
+    def splat_nor(self, var):
+        return splat(var, self, b_nor)
+
+    def splat_xor(self, var):
+        return splat(var, self, b_xor)
 
     def rotl(self, amount=1):
         amount = abs(amount) % (self.count+1)
