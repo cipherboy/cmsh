@@ -1,5 +1,6 @@
 def v_and(left, right):
     mod = left.model
+
     transform = mod.build_transform('and', left, right)
     if mod.has_constraint(transform):
         return mod.get_constraint(transform)
@@ -17,6 +18,7 @@ def v_and(left, right):
 
 def v_nand(left, right):
     mod = left.model
+
     transform = mod.build_transform('nand', left, right)
     if mod.has_constraint(transform):
         return mod.get_constraint(transform)
@@ -34,12 +36,12 @@ def v_nand(left, right):
 
 def v_or(left, right):
     mod = left.model
+
     transform = mod.build_transform('or', left, right)
     if mod.has_constraint(transform):
         return mod.get_constraint(transform)
 
     new_var = mod.var()
-
     mod.add_clauses([
         (left.identifier, right.identifier, -new_var.identifier),
         (-left.identifier, new_var.identifier),
@@ -52,6 +54,7 @@ def v_or(left, right):
 
 def v_nor(left, right):
     mod = left.model
+
     transform = mod.build_transform('nor', left, right)
     if mod.has_constraint(transform):
         return mod.get_constraint(transform)
@@ -73,6 +76,7 @@ def v_not(var):
 
 def v_xor(left, right):
     mod = left.model
+
     transform = mod.build_transform('xor', left, right)
     if mod.has_constraint(transform):
         return mod.get_constraint(transform)
