@@ -168,6 +168,12 @@ class Vector:
     def __getitem__(self, key):
         return self.variables[key]
 
+    def insert(self, index, obj):
+        var_list = list(self.variables)
+        var_list.insert(index, obj)
+        self.variables = tuple(var_list)
+        self.count += 1
+
     def __hash__(self):
         return self.variables.__hash__()
 
