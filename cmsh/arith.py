@@ -31,14 +31,18 @@ def ripple_carry_adder(left, right, carry=False):
 def sum_array(vec):
     v_list, v_model, _ = __from_arg(vec)
     length = len(v_list)
-    result_length = math.ceil(math.log(length, 2))
-    prefix = [False] * (result_length - 1)
+    if length == 0:
+        return [False]
+    elif length == 1:
+        return vec
 
-    result = [False] * result_length
-    for item in v_list:
-        if not v_model and isinstance(item, Variable):
-            v_model = item.model
+    result = [v_list[0]]
 
+    for index in range(1, length):
+        item = v_list[index]
+        if math.log(index+1, 2) % 1 == 0:
+            result.insert(0, False)
+        prefix = [False] * (len(result) - 1)
         result, _ = ripple_carry_adder(result, prefix + [item])
 
     if v_model:
