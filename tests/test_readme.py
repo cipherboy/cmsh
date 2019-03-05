@@ -6,7 +6,7 @@ def test_readme_contents():
 
     # Variables
     a = m.var()
-    b = m.named_var("b")
+    b = m.var()
 
     # Assertions
     stmt = a ^ -b

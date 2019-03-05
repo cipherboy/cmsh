@@ -322,6 +322,3 @@ def test_invalid_usages():
         a == set()
     with pytest.raises(TypeError):
         a != set()
-
-    b = mod.named_var("Hi")
-    assert "Hi" in str(b)

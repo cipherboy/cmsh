@@ -182,8 +182,8 @@ def test_rotations():
                 continue
             con = b_and(con, left.rotl() == right.rotr())
             con = b_and(con, left.rotl(amount=2) == right.rotr(amount=2))
-            con = b_and(con, left.shiftl() == right.shiftr())
-            con = b_and(con, left.shiftl(amount=2) == right.shiftr(amount=2))
+            con = b_and(con, left.shiftl() == right.shiftr(filler=False))
+            con = b_and(con, left.shiftl(amount=2) == right.shiftr(amount=2, filler=False))
 
     mod.add_assert(con)
     assert mod.solve()

@@ -1,7 +1,17 @@
-from .logic import *
+"""
+This module includes the Variable class, which represents a single boolean
+variable in a SAT model.
+"""
+
+from .logic import b_and, b_xor, b_or, b_not, b_lt, b_le, b_eq, b_ne, b_gt, b_ge
 
 
 class Variable:
+    """
+    The Variable class represents a single variable in the CNF model. Its
+    identifier is positive when the variable represents a positive value, and
+    negative when refering to its negation.
+    """
     identifier = 0
     value = None
     model = None
@@ -10,11 +20,20 @@ class Variable:
         if identifier:
             self.identifier = identifier
         else:
-            self.identifier = model.next_var_identifier()
+            self.identifier = model._next_var_identifier_()
         self.model = model
 
     def get_value(self):
-        self.value = self.model.get_value(self.identifier)
+        """
+        Get the value of the variable: True, False, or None, and updated to
+        reflect the sign of the identifier. If negative, the value is negated.
+        None when the model is not solved, else a bool when the model has been
+        solved.
+
+        Returns:
+            bool: value of the variable after solving.
+        """
+        self.value = self.model._get_value_(self.identifier)
         return self.value
 
     def __and__(self, other):
@@ -109,14 +128,3 @@ class Variable:
             raise NotImplementedError(msg)
 
         return val
-
-
-class NamedVariable(Variable):
-    name = ""
-
-    def __init__(self, model, name):
-        super().__init__(model)
-        self.name = name
-
-    def __str__(self):
-        return self.name + ":" + super().__str__()

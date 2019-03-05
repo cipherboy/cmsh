@@ -17,11 +17,11 @@ import cmsh
 m = cmsh.Model()
 ```
 
-Variables can be created with `Model.var()` or `Model.named_var()`:
+Variables can be created with `Model.var()`:
 
 ```python
 a = m.var()
-b = m.named_var("b")
+b = m.var()
 ```
 
 Asserting a variable is true is done via `Model.add_assert(...)`:
