@@ -27,8 +27,7 @@ def test_readme_contents():
     c = m.var()
     not_c = -c
 
-    assert int(c) == 5
-    assert int(not_c) == -5
+    assert int(c) == -1 * int(not_c)
 
     # Booleans
     stmt2 = (c == True) | (c == -a)

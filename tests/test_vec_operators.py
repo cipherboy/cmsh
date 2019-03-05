@@ -111,6 +111,27 @@ def test_sum_array():
     assert bool(b) == True
 
 
+def test_other_sum_array():
+    for i in range(0, 128):
+        mod = cmsh.Model()
+        a = mod.vec(7)
+
+        a_value = a == i
+        a_sum = sum_array(a)
+        num_ones = bin(i).count("1")
+        assert len(a_sum) >= len(bin(num_ones)[2:])
+
+        mod.add_assert(a_value)
+
+        assert mod.solve()
+        assert int(a) == i
+        assert int(a_sum) == num_ones
+
+        new_sol = mod.negate_solution(a_sum)
+        mod.add_assert(new_sol)
+        assert not mod.solve()
+
+
 def test_misc():
     mod = cmsh.Model()
     a1 = mod.var()

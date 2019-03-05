@@ -25,10 +25,13 @@ def test_get_value():
 
     mod.add_assert(-a)
 
-    assert a.get_value() is None
-    assert b.get_value() is None
+    assert a.get_value() == True
+    assert b.get_value() == False
 
     assert mod.solve() == False
+
+    assert a.get_value() is None
+    assert b.get_value() is None
 
 
 def test_str():
@@ -52,10 +55,13 @@ def test_str():
 
     mod.add_assert(-a)
 
-    assert str(a) == str(a.identifier)
-    assert str(b) == str(b.identifier)
+    assert str(a) == str(True)
+    assert str(b) == str(False)
 
     assert mod.solve() == False
+
+    assert str(a) == str(a.identifier)
+    assert str(b) == str(b.identifier)
 
 
 def test_bool():
@@ -83,12 +89,15 @@ def test_bool():
 
     mod.add_assert(-a)
 
+    assert bool(a) == True
+    assert bool(b) == False
+
+    assert mod.solve() == False
+
     with pytest.raises(NotImplementedError):
         bool(a)
     with pytest.raises(NotImplementedError):
         bool(b)
-
-    assert mod.solve() == False
 
 
 def test_repeated_gates():
