@@ -1,8 +1,9 @@
 import pytest
 
 import cmsh
+from cmsh.logic import b_xor
 from cmsh.array import *
-from cmsh.arith import sum_array
+from cmsh.arith import sum_array, splat
 
 
 def test_op_add():
@@ -110,6 +111,10 @@ def test_sum_array():
     assert bool(a) == True
     assert bool(b) == True
 
+    assert sum_array([]) == [False]
+    assert sum_array([False]) == [False]
+    assert sum_array([True]) == [True]
+
 
 def test_other_sum_array():
     for i in range(0, 128):
@@ -145,6 +150,9 @@ def test_misc():
     assert mod.solve()
 
     assert abs(a) == (int(a1), int(a2), int(a3))
+    truncation = a.truncate(1)
+    assert len(truncation) == 1
+    assert int(truncation.variables[0]) == int(a3)
 
 
 def test_hashable():
@@ -166,6 +174,33 @@ def test_hashable():
 
     c = mod.to_vector(a)
     assert abs(a) == abs(c)
+
+
+def test_splat():
+    mod = cmsh.Model()
+    a = mod.vector(2)
+    b = mod.var()
+    c = mod.var()
+    d = a.splat_and(b) == 1
+    e = a.splat_or(b) == 3
+    f = a.splat_xor(b) == 2
+    g = a.splat_nand(b) == 2
+    h = a.splat_nor(b) == 0
+    i = a.splat_nand(c) == 3
+    j = splat(b, [True, True], b_xor) == 0
+
+    mod.add_assert(d)
+    mod.add_assert(e)
+    mod.add_assert(f)
+    mod.add_assert(g)
+    mod.add_assert(h)
+    mod.add_assert(i)
+    mod.add_assert(j)
+    assert mod.solve()
+
+    assert int(a) == 1
+    assert bool(b) == True
+    assert bool(c) == False
 
 
 def test_rotations():
