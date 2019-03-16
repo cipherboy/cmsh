@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='cmsh',
-      version='0.1',
+      version='0.2',
       description="High level interface over Mate Soos's pycryptosat from CryptoMiniSat",
       url='http://github.com/cipherboy/cmsh',
       author='Alexander Scheel',

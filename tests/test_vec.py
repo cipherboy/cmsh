@@ -22,3 +22,13 @@ def test_add_extensive():
             mod.add_assert(negated)
 
             assert not mod.solve()
+
+
+def test_subindex():
+    mod = cmsh.Model()
+    a = mod.vec(10)
+    assert isinstance(a, cmsh.Vector)
+    assert isinstance(a[0], cmsh.Variable)
+    assert isinstance(a[1:3], cmsh.Vector)
+    assert int(a[1:3][0]) == int(a[1])
+    assert int(a[1:3][1]) == int(a[2])

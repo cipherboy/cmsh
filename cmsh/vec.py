@@ -382,7 +382,9 @@ class Vector:
         return tuple(map(abs, self.variables))
 
     def __getitem__(self, key):
-        return self.variables[key]
+        if isinstance(key, int):
+            return self.variables[key]
+        return self.model.to_vector(self.variables[key])
 
     def insert(self, index, obj):
         """
