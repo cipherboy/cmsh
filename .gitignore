@@ -66,3 +66,5 @@ Session.vim
 .netrwhist
 *~
 
+# Pytest
+.pytest_cache/
