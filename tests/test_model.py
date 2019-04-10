@@ -65,10 +65,10 @@ def test_int_to_vec():
     b = mod.to_vec(1, 2)
     c = mod.to_vec(2, 2)
     d = mod.to_vec(3, 2)
-    assert a.variables == (False, False)
-    assert b.variables == (False, True)
-    assert c.variables == (True, False)
-    assert d.variables == (True, True)
+    assert a.variables == [False, False]
+    assert b.variables == [False, True]
+    assert c.variables == [True, False]
+    assert d.variables == [True, True]
 
 
 def test_vector_shaping():
@@ -76,12 +76,12 @@ def test_vector_shaping():
     a1, a2, a3, a4 = mod.var(), mod.var(), mod.var(), mod.var()
 
     left, right = mod.to_vec([a1, a2]), mod.to_vec([a3, a4])
-    assert left.variables == (a1, a2)
-    assert right.variables == (a3, a4)
+    assert left.variables == [a1, a2]
+    assert right.variables == [a3, a4]
 
     a = mod.join_vec([left, right])
     assert len(a) == 4
-    assert a.variables == (a1, a2, a3, a4)
+    assert a.variables == [a1, a2, a3, a4]
 
     b, c = mod.split_vec(a, 2)
     assert len(b) == 2

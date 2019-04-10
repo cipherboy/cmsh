@@ -2,12 +2,10 @@
 Module which contains array based operations.
 """
 
-
-from .logic import b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq
-from .var import Variable
+from .var import Variable, b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq
 
 
-def _from_arg_(arg):
+def _from_arg_(arg, have_model=False):
     """
     Parses a vector argument: returns an iterable, a reference to the model if
     present, and whether or not the argument is of fixed length (i.e., is not
@@ -22,15 +20,20 @@ def _from_arg_(arg):
         length.
     """
     # ret: [Vector/list/tuple], model, is_fixed
-    if isinstance(arg, int):
+
+    atype = type(arg)
+    if atype == int:
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
-    if isinstance(arg, (list, tuple)):
+
+    if atype == list or atype == tuple:
         model = None
-        for item in arg:
-            if isinstance(item, Variable):
-                model = item.model
+        if not have_model:
+            for item in arg:
+                if isinstance(item, Variable):
+                    model = item.model
         return arg, model, True
+
     return arg, arg.model, True
 
 
@@ -85,7 +88,7 @@ def _parse_args_(left, right):
         the Model, if present.
     """
     l_list, l_model, l_fixed = _from_arg_(left)
-    r_list, r_model, r_fixed = _from_arg_(right)
+    r_list, r_model, r_fixed = _from_arg_(right, l_model is not None)
     l_list, r_list = __validate_size__(l_list, l_fixed, r_list, r_fixed)
     model = l_model or r_model
     return l_list, r_list, model

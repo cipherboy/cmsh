@@ -1,7 +1,7 @@
 import pytest
 
 from cmsh import Model
-from cmsh.logic import *
+from cmsh.var import *
 
 
 def test_op_and():

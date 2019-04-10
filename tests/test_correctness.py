@@ -162,3 +162,7 @@ def test_sudokus():
         known = sudoku_conv(grid[0], 9)
         solution = sudoku_conv(grid[1], 9)
         sudoku_solve(known, solution)
+
+
+if __name__ == "__main__":
+    test_sudokus()

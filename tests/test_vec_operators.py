@@ -1,7 +1,7 @@
 import pytest
 
 import cmsh
-from cmsh.logic import b_xor
+from cmsh.var import b_xor
 from cmsh.array import *
 from cmsh.arith import sum_array, splat
 
@@ -149,7 +149,7 @@ def test_misc():
     mod.add_assert(-a == 0)
     assert mod.solve()
 
-    assert abs(a) == (int(a1), int(a2), int(a3))
+    assert abs(a) == [int(a1), int(a2), int(a3)]
     truncation = a.truncate(1)
     assert len(truncation) == 1
     assert int(truncation.variables[0]) == int(a3)

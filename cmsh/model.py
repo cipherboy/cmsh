@@ -180,9 +180,10 @@ class Model:
         """
         assert len(vector) % width == 0
 
-        vectors = []
-        for index in range(0, len(vector), width):
-            vectors.append(self.to_vec(vector[index:index+width]))
+        vectors = [
+            self.to_vec(vector[index:index+width])
+            for index in range(0, len(vector), width)
+        ]
 
         return vectors
 
@@ -196,13 +197,13 @@ class Model:
         Returns:
             Variable: the negation of var.
         """
-        if isinstance(var, int):
+        vtype = type(var)
+        if vtype == int:
             if var > self.variables:
                 msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
                 raise ValueError(msg)
             return Variable(self, identifier=-var)
-
-        if isinstance(var, Variable):
+        if vtype == Variable:
             return Variable(self, identifier=-var.identifier)
 
         raise TypeError("Unknown type to negate: %s" % type(var))
@@ -230,13 +231,9 @@ class Model:
         Returns:
             str: canonical representation of operator applied to the operands.
         """
-        assert isinstance(operator, str)
-        assert isinstance(left, Variable)
-        assert isinstance(right, Variable)
-
-        if abs(int(left)) < abs(int(right)):
-            return '(' + str(left.identifier) + operator + str(right.identifier) + ')'
-        return '(' + str(right.identifier) + operator + str(left.identifier) + ')'
+        if abs(left) < abs(right):
+            return (operator, left.identifier, right.identifier)
+        return (operator, right.identifier, left.identifier)
 
     def _has_constraint_(self, transform):
         """
@@ -248,8 +245,6 @@ class Model:
         Returns:
             bool: whether or not the specified transformation has been seen.
         """
-        assert isinstance(transform, str)
-
         return transform in self.constraints
 
     def _add_constraint_(self, transform, result):
@@ -260,9 +255,6 @@ class Model:
             transform (str): built from __build_transform.
             result (Variable): result of the constraints.
         """
-        assert isinstance(transform, str)
-        assert isinstance(result, Variable)
-
         self.constraints[transform] = result
 
     def _get_constraint_(self, transform):
@@ -275,8 +267,6 @@ class Model:
         Returns:
             Variable: result of the constraint.
         """
-        assert isinstance(transform, str)
-
         return self.constraints[transform]
 
     def add_assert(self, var):
@@ -304,9 +294,10 @@ class Model:
         Args:
             var (int or Variable): variable or its identifier to assume.
         """
-        if isinstance(var, bool):
+        vtype = type(var)
+        if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
-        elif isinstance(var, int):
+        elif vtype == int:
             if var > self.variables:
                 msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
                 raise ValueError(msg)
@@ -324,12 +315,28 @@ class Model:
         Args:
             var (int or Variable): variable or its identifier to assume.
         """
-        if isinstance(var, bool):
+        vtype = type(var)
+        if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
-        elif isinstance(var, int):
+        elif vtype == int:
             self.assumptions.remove(var)
         else:
             self.assumptions.remove(var.identifier)
+
+    def __to_ident__(self, var):
+        vtype = type(var)
+        if vtype == bool:
+            if var:
+                return self.true.identifier
+            else:
+                return self.false.identifier
+        elif vtype == int:
+            if var > self.variables:
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
+                raise ValueError(msg)
+            return var
+        else:
+            return var.identifier
 
     def add_clause(self, clause):
         """
@@ -343,22 +350,9 @@ class Model:
             clause (iterable of bool, int, or Variable): clause to add to the
             CNF.
         """
-        resolved_clause = []
-        for var in clause:
-            if isinstance(var, bool):
-                if var:
-                    resolved_clause.append(self.true.identifier)
-                else:
-                    resolved_clause.append(self.false.identifier)
-            elif isinstance(var, int):
-                if var > self.variables:
-                    msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
-                    raise ValueError(msg)
-                resolved_clause.append(var)
-            else:
-                resolved_clause.append(var.identifier)
 
-        self.clauses.add(tuple(resolved_clause))
+        resolved_clause = tuple(map(self.__to_ident__, clause))
+        self.clauses.add(resolved_clause)
 
     def add_clauses(self, clauses):
         """
@@ -372,25 +366,11 @@ class Model:
             clauses (iterable of iterables of bool, int, or Variable): set of
             clauses to add to the CNF.
         """
-        resolved_clauses = set()
-        for clause in clauses:
-            resolved_clause = []
-            for var in clause:
-                if isinstance(var, bool):
-                    if var:
-                        resolved_clause.append(self.true.identifier)
-                    else:
-                        resolved_clause.append(self.false.identifier)
-                elif isinstance(var, int):
-                    if var > self.variables:
-                        msg = ("Passed identifier %d exceeds number of " +
-                               "vars: %d") % (var, self.variables)
-                        raise ValueError(msg)
-                    resolved_clause.append(var)
-                else:
-                    resolved_clause.append(var.identifier)
-            resolved_clauses.add(tuple(resolved_clause))
 
+        resolved_clauses = [
+            tuple(map(self.__to_ident__, clause))
+            for clause in clauses
+        ]
         self.clauses.update(resolved_clauses)
 
     def negate_solution(self, variables):

@@ -1,7 +1,7 @@
 import pytest
 
 import cmsh
-from cmsh.tseitin import *
+from cmsh.var import *
 
 
 def test_get_value():

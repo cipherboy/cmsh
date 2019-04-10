@@ -3,7 +3,7 @@ The vec module includes the Vector class.
 """
 
 from .array import l_and, l_or, l_not, l_xor, l_lt, l_le, l_eq, l_ne, l_gt, l_ge
-from .logic import b_and, b_nand, b_or, b_nor, b_not, b_xor
+from .var import b_and, b_nand, b_or, b_nor, b_not, b_xor
 from .arith import ripple_carry_adder, sum_array, flatten, splat
 
 
@@ -13,6 +13,7 @@ class Vector:
     on together, e.g., via addition.
     """
     variables = None
+    hash_code = None
     count = None
     model = None
 
@@ -35,17 +36,15 @@ class Vector:
             raise ValueError("Must specify either width or vector!")
 
         if width:
-            self.variables = []
-            for _ in range(0, width):
-                self.variables.append(self.model.var())
+            self.variables = [self.model.var() for _ in range(0, width)]
 
-        if isinstance(vector, Vector):
+        if vector and isinstance(vector, Vector):
             self.variables = vector.variables[:]
-        elif isinstance(vector, (list, tuple)):
-            self.variables = vector[:]
+        elif vector is not None:
+            self.variables = list(vector[:])
 
         self.count = len(self.variables)
-        self.variables = tuple(self.variables)
+        self.hash_code = tuple(self.variables).__hash__()
 
     def bit_sum(self):
         """
@@ -257,7 +256,7 @@ class Vector:
             Vector: the result of the shift.
         """
         amount = abs(amount) % (self.count+1)
-        new_vec = self.variables[amount:] + tuple([filler]*amount)
+        new_vec = self.variables[amount:] + [filler]*amount
         return self.model.to_vector(new_vec)
 
     def shiftr(self, amount=1, filler=None):
@@ -277,7 +276,7 @@ class Vector:
         amount = abs(amount) % (self.count+1)
         new_vec = self.variables[:-amount]
         if filler is not None:
-            new_vec = tuple([filler]*amount) + new_vec
+            new_vec = [filler]*amount + new_vec
         return self.model.to_vector(new_vec)
 
     def truncate(self, width):
@@ -379,7 +378,7 @@ class Vector:
         return self
 
     def __abs__(self):
-        return tuple(map(abs, self.variables))
+        return list(map(abs, self.variables))
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -395,13 +394,12 @@ class Vector:
             index (int): index to add the new item at.
             obj (Variable or bool): item to add to the Vector.
         """
-        var_list = list(self.variables)
-        var_list.insert(index, obj)
-        self.variables = tuple(var_list)
         self.count += 1
+        self.variables = self.variables[0:index] + [obj] + self.variables[index:]
+        self.hash_code = tuple(self.variables).__hash__()
 
     def __hash__(self):
-        return self.variables.__hash__()
+        return self.hash_code
 
     def __int__(self):
         bits = map(lambda x: str(int(bool(x))), self.variables)

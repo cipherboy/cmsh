@@ -8,9 +8,8 @@ directly.
 
 import math
 
-from .logic import b_and, b_or, b_xor
 from .array import _parse_args_, _from_arg_
-from .var import Variable
+from .var import Variable, b_and, b_or, b_xor
 
 
 def full_adder(left_bit, right_bit, carry_in):
@@ -76,12 +75,13 @@ def sum_array(vec):
         return vec
 
     result = [v_list[0]]
+    prefix = []
 
     for index in range(1, length):
         item = v_list[index]
         if math.log(index+1, 2) % 1 == 0:
             result.insert(0, False)
-        prefix = [False] * (len(result) - 1)
+            prefix.append(False)
         result, _ = ripple_carry_adder(result, prefix + [item])
 
     if v_model:
@@ -129,9 +129,10 @@ def splat(var, vec, func):
     if not v_model and isinstance(var, Variable):
         v_model = var.model
 
-    result = []
-    for item in v_list:
-        result.append(func(var, item))
+    result = [
+        func(var, item)
+        for item in v_list
+    ]
 
     if v_model:
         result = v_model.to_vector(result)

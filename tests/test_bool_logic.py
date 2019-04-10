@@ -1,6 +1,6 @@
 import pytest
 
-from cmsh.logic import *
+from cmsh.var import *
 
 
 def test_bool_and():
