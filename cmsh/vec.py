@@ -2,8 +2,8 @@
 The vec module includes the Vector class.
 """
 
-from .array import l_and, l_or, l_not, l_xor, l_lt, l_le, l_eq, l_ne, l_gt, l_ge
-from .var import b_and, b_nand, b_or, b_nor, b_not, b_xor
+from .utils import _parse_args_, _from_arg_
+from .var import Variable, b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq
 from .arith import ripple_carry_adder, sum_array, flatten, splat
 
 
@@ -411,3 +411,234 @@ class Vector:
         result += ">"
 
         return result
+
+
+def l_and(left, right):
+    """
+    Compute the bitwise AND operation between two vectors.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result = list(map(lambda x: b_and(x[0], x[1]), zip(l_list, r_list)))
+
+    if model:
+        return model.to_vector(result)
+
+    return result
+
+
+def l_nand(left, right):
+    """
+    Compute the bitwise NAND operation between two vectors.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result = list(map(lambda x: b_nand(x[0], x[1]), zip(l_list, r_list)))
+
+    if model:
+        return model.to_vector(result)
+
+    return result
+
+
+def l_or(left, right):
+    """
+    Compute the bitwise OR operation between two vectors.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result = list(map(lambda x: b_or(x[0], x[1]), zip(l_list, r_list)))
+
+    if model:
+        return model.to_vector(result)
+
+    return result
+
+
+def l_nor(left, right):
+    """
+    Compute the bitwise NOR operation between two vectors.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result = list(map(lambda x: b_nor(x[0], x[1]), zip(l_list, r_list)))
+
+    if model:
+        return model.to_vector(result)
+
+    return result
+
+
+def l_not(vec):
+    """
+    Compute the negation of all items in the Vector.
+
+    Args:
+        vec (list, int, or Vector): vector to negate.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    v_list, v_model, _ = _from_arg_(vec)
+
+    result = list(map(b_not, v_list))
+
+    if v_model:
+        return v_model.to_vector(result)
+
+    return result
+
+
+def l_xor(left, right):
+    """
+    Compute the bitwise XOR operation between two vectors.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        list or Vector: value of the operation.
+    """
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result = list(map(lambda x: b_xor(x[0], x[1]), zip(l_list, r_list)))
+
+    if model:
+        return model.to_vector(result)
+
+    return result
+
+
+def l_lt(left, right):
+    """
+    Checks whether the left argument is less than the right argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    l_list, r_list, _ = _parse_args_(left, right)
+
+    if not l_list:
+        return True
+
+    result = b_lt(l_list[0], r_list[0])
+    and_list = True
+    for index, (l_item, r_item) in enumerate(zip(l_list[1:], r_list[1:]), 1):
+        and_list = b_and(and_list, b_eq(l_list[index-1], r_list[index-1]))
+        result = b_or(result, b_and(and_list, b_lt(l_item, r_item)))
+
+    return result
+
+
+def l_le(left, right):
+    """
+    Checks whether the left argument is less than or equal to the right
+    argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    return b_or(l_lt(left, right), l_eq(left, right))
+
+
+def l_eq(left, right):
+    """
+    Checks whether the left argument is equal to the right argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    l_list, r_list, _ = _parse_args_(left, right)
+
+    if not l_list:
+        return True
+
+    result = b_eq(l_list[0], r_list[0])
+    for l_item, r_item in zip(l_list[1:], r_list[1:]):
+        result = b_and(result, b_eq(l_item, r_item))
+
+    return result
+
+
+def l_ne(left, right):
+    """
+    Checks whether the left argument is not equal to the right argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    return b_not(l_eq(left, right))
+
+
+def l_gt(left, right):
+    """
+    Checks whether the left argument is greater than the right argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    return b_not(b_or(l_lt(left, right), l_eq(left, right)))
+
+
+def l_ge(left, right):
+    """
+    Checks whether the left argument is greater than or equal to the right
+    argument.
+
+    Args:
+        left (list, int, or Vector): left argument.
+        right (list, int, or Vector): right argument.
+
+    Returns:
+        bool or Variable: result of the operation.
+    """
+    return b_or(l_gt(left, right), l_eq(left, right))

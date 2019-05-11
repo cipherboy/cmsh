@@ -8,7 +8,7 @@ directly.
 
 import math
 
-from .array import _parse_args_, _from_arg_
+from .utils import _parse_args_, _from_arg_
 from .var import Variable, b_and, b_or, b_xor
 
 
