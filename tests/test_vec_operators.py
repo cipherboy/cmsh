@@ -3,7 +3,7 @@ import pytest
 import cmsh
 from cmsh.var import b_xor
 from cmsh.vec import *
-from cmsh.arith import sum_array, splat
+from cmsh.vec import sum_array, splat
 
 
 def test_op_add():
