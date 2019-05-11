@@ -1,6 +1,6 @@
 import pytest
 
-from cmsh.array import *
+from cmsh.vec import *
 
 
 def test_bool_and():

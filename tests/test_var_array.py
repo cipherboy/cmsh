@@ -1,7 +1,7 @@
 import pytest
 
 import cmsh
-from cmsh.array import *
+from cmsh.vec import *
 
 
 def test_vec_and():

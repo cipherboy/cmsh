@@ -2,7 +2,7 @@ import pytest
 
 import cmsh
 from cmsh.var import b_xor
-from cmsh.array import *
+from cmsh.vec import *
 from cmsh.arith import sum_array, splat
 
 
