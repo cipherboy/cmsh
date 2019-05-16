@@ -6,7 +6,6 @@ This module contains the main Module class.
 from pycryptosat import Solver
 
 from .var import Variable
-
 from .vec import Vector
 
 
@@ -85,8 +84,8 @@ class Model:
         Returns:
             Variable: the newly created variable.
         """
-        new_variable = Variable(self)
         self.variables += 1
+        new_variable = Variable(self, identifier=self.variables)
 
         return new_variable
 
@@ -208,15 +207,6 @@ class Model:
 
         raise TypeError("Unknown type to negate: %s" % type(var))
 
-    def _next_var_identifier_(self):
-        """
-        Get the next (free) variable identifier.
-
-        Returns:
-            int: the identifier for the next variable.
-        """
-        return self.variables + 1
-
     def _build_transform_(self, operator, left, right):
         """
         Build the canonical form of a transformation (boolean expression)
@@ -231,7 +221,7 @@ class Model:
         Returns:
             str: canonical representation of operator applied to the operands.
         """
-        if abs(left) < abs(right):
+        if left.identifier < right.identifier:
             return (operator, left.identifier, right.identifier)
         return (operator, right.identifier, left.identifier)
 
@@ -297,7 +287,7 @@ class Model:
         vtype = type(var)
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
-        elif vtype == int:
+        if vtype == int:
             if var > self.variables:
                 msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
                 raise ValueError(msg)
@@ -318,7 +308,7 @@ class Model:
         vtype = type(var)
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
-        elif vtype == int:
+        if vtype == int:
             self.assumptions.remove(var)
         else:
             self.assumptions.remove(var.identifier)
@@ -326,17 +316,14 @@ class Model:
     def __to_ident__(self, var):
         vtype = type(var)
         if vtype == bool:
-            if var:
-                return self.true.identifier
-            else:
-                return self.false.identifier
-        elif vtype == int:
+            msg = "Cannot pass bool as an identifier into CNF clause"
+            raise ValueError(msg)
+        if vtype == int:
             if var > self.variables:
                 msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
                 raise ValueError(msg)
             return var
-        else:
-            return var.identifier
+        return var.identifier
 
     def add_clause(self, clause):
         """

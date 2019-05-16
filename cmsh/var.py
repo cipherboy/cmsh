@@ -12,12 +12,9 @@ class Variable:
     identifier: int = 0
     model = None
 
-    def __init__(self, model, identifier=None):
-        if identifier:
-            self.identifier = identifier
-        else:
-            self.identifier = model._next_var_identifier_()
+    def __init__(self, model, identifier):
         self.model = model
+        self.identifier = identifier
 
     def get_value(self):
         """

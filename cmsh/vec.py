@@ -32,7 +32,7 @@ class Vector:
 
         if width and vector:
             raise ValueError("Cannot specify both width and vector!")
-        elif not width and not vector:
+        if not width and not vector:
             raise ValueError("Must specify either width or vector!")
 
         if width:
@@ -434,7 +434,7 @@ def _from_arg_(arg, have_model=False):
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
 
-    if atype == list or atype == tuple:
+    if atype in (list, tuple):
         model = None
         if not have_model:
             for item in arg:
@@ -465,9 +465,9 @@ def __validate_size__(left, l_fixed, right, r_fixed):
 
     if l_fixed and r_fixed and l_len != r_len:
         raise ValueError("Mismatch sizes: %d vs %d" % (l_len, r_len))
-    elif l_fixed and l_len < r_len:
+    if l_fixed and l_len < r_len:
         raise ValueError("Value of constant (%d) exceeds size: %d" % (r_len, l_len))
-    elif r_fixed and r_len < l_len:
+    if r_fixed and r_len < l_len:
         raise ValueError("Value of constant (%d) exceeds size: %d" % (l_len, r_len))
 
     if l_len < r_len:
