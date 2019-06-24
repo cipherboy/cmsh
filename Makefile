@@ -25,8 +25,9 @@ check: check-native
 	build/basic_api
 	# pytest-3
 
-check-native: native
-	mkdir -p build/tests
+check-native: native build/basic_api
+
+build/basic_api: tests/native/basic_api.cpp
 	g++ $(CPPFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api
 
 distclean: clean

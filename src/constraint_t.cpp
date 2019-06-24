@@ -43,10 +43,9 @@ bool constraint_t::operator==(const constraint_t& other) {
 }
 
 void constraint_t::assign_vars(model_t *m) {
-
-    this->cnf_left = m->cnf_from_constraint(this->left);
-    this->cnf_right = m->cnf_from_constraint(this->right);
-    this->cnf_value = m->cnf_from_constraint(this->value);
+    cnf_left = m->cnf_from_constraint(left);
+    cnf_right = m->cnf_from_constraint(right);
+    cnf_value = m->cnf_from_constraint(value);
 }
 
 void constraint_t::tseitin(SATSolver *s, vector<Lit>& c) {
@@ -122,6 +121,8 @@ void constraint_t::add_clause(SATSolver *s, vector<Lit>& c, int var_1, int var_2
 }
 
 Lit constraint_t::to_lit(int var, bool neg) {
+    assert(var != 0);
+
     bool sign = neg;
     if (var < 0) {
         sign = !sign;

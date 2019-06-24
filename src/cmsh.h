@@ -56,7 +56,7 @@ namespace cmsh {
             void tseitin_or(SATSolver *s, vector<Lit>& c);
             void tseitin_nor(SATSolver *s, vector<Lit>& c);
             void tseitin_xor(SATSolver *s, vector<Lit>& c);
-            static Lit to_lit(int var, bool neg = false);
+            static Lit to_lit(int var, bool neg=false);
     };
 
     class model_t {
@@ -72,6 +72,8 @@ namespace cmsh {
             vector<constraint_t *> constraints;
             unordered_set<int> asserts;
 
+            lbool solved = l_False;
+
         protected:
             SATSolver *solver;
             vector<Lit> clause;
@@ -79,6 +81,7 @@ namespace cmsh {
         private:
             int v_op(int left, op_t op, int right);
             void update_max_vars();
+            static inline bool to_bool(lbool var, bool negate=false);
 
         protected:
             int next_constraint();
@@ -86,8 +89,11 @@ namespace cmsh {
             int cnf_from_constraint(int constraint_var);
 
         public:
-            model_t();
+            model_t(int threads=1, bool gauss=true);
             ~model_t();
+
+            void config_timeout(double max_time);
+            void config_conflicts(int64_t max_conflicts);
 
             int var();
             int v_and(int left, int right);
@@ -97,7 +103,9 @@ namespace cmsh {
             int v_xor(int left, int right);
 
             void v_assert(int var);
+            void v_assert(const vector<int> vars);
 
-            lbool solve(const std::vector<Lit>* assumptions = 0, bool only_indep_solution = false);
+            lbool solve(const vector<Lit>* assumptions=0, bool only_indep_solution=false);
+            bool val(int constraint_var);
     };
 }
