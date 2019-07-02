@@ -39,8 +39,7 @@ namespace cmsh {
 
         public:
             bool operator==(const constraint_t& other);
-            bool valueOf(bool left, bool right) const;
-            void print() const;
+            bool eval(bool left, bool right) const;
 
             size_t hash() const;
 

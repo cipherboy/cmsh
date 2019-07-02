@@ -54,7 +54,7 @@ void constraint_t::assign_vars(model_t *m) {
     cnf_value = m->cnf_from_constraint(value);
 }
 
-bool constraint_t::valueOf(bool left, bool right) const {
+bool constraint_t::eval(bool left, bool right) const {
     switch (op) {
         case op_t::AND:
             return left && right;
@@ -167,40 +167,6 @@ size_t constraint_t::hash() const {
     result *= right;
     result *= value;
     return result;
-}
-
-void constraint_t::print(void) const {
-    std::cout << "(" << left;
-    if (cnf_left != 0) {
-        std::cout << "[" << cnf_left << "]";
-    }
-
-    switch (op) {
-        case op_t::AND:
-            std::cout << " AND ";
-            break;
-        case op_t::NAND:
-            std::cout << " NAND ";
-            break;
-        case op_t::OR:
-            std::cout << " OR ";
-            break;
-        case op_t::NOR:
-            std::cout << " NOR ";
-            break;
-        case op_t::XOR:
-            std::cout << " XOR ";
-            break;
-    }
-    std::cout << right;
-    if (cnf_right != 0) {
-        std::cout << "[" << cnf_right << "]";
-    }
-    std::cout << ") == " << value;
-    if (cnf_value != 0) {
-        std::cout << "[" << cnf_value << "]";
-    }
-    std::cout << std::endl;
 }
 
 namespace std {

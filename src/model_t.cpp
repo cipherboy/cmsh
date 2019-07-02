@@ -212,7 +212,7 @@ void model_t::extend_solution() {
                 }
 
                 bool right_value = solution[abs(con->right)];
-                bool con_value = con->valueOf(ubv(var_value, con->left < 0), ubv(right_value, con->right < 0));
+                bool con_value = con->eval(ubv(var_value, con->left < 0), ubv(right_value, con->right < 0));
                 solution[con->value] = con_value;
 
                 queue.insert(con->value);
@@ -222,7 +222,7 @@ void model_t::extend_solution() {
                 }
 
                 bool left_value = solution[abs(con->left)];
-                bool con_value = con->valueOf(ubv(left_value, con->left < 0), ubv(var_value, con->right < 0));
+                bool con_value = con->eval(ubv(left_value, con->left < 0), ubv(var_value, con->right < 0));
                 solution[con->value] = con_value;
 
                 queue.insert(con->value);
