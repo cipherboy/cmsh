@@ -23,6 +23,8 @@ constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
     }
 
     value = m->next_constraint();
+    assert(value > 0);
+
     op = o;
     cnf_left = 0;
     cnf_right = 0;
@@ -42,10 +44,37 @@ bool constraint_t::operator==(const constraint_t& other) {
     return false;
 }
 
+bool constraint_t::assigned() {
+    return cnf_left != 0 && cnf_right != 0 && cnf_value != 0;
+}
+
 void constraint_t::assign_vars(model_t *m) {
     cnf_left = m->cnf_from_constraint(left);
     cnf_right = m->cnf_from_constraint(right);
     cnf_value = m->cnf_from_constraint(value);
+}
+
+bool constraint_t::valueOf(bool left, bool right) const {
+    switch (op) {
+        case op_t::AND:
+            return left && right;
+            break;
+        case op_t::NAND:
+            return !(left && right);
+            break;
+        case op_t::OR:
+            return left || right;
+            break;
+        case op_t::NOR:
+            return !(left || right);
+            break;
+        case op_t::XOR:
+            return left != right;
+            break;
+    }
+
+    assert(false);
+    return false;
 }
 
 void constraint_t::tseitin(SATSolver *s, vector<Lit>& c) {
@@ -129,4 +158,55 @@ Lit constraint_t::to_lit(int var, bool neg) {
     }
 
     return Lit(abs(var), sign);
+}
+
+size_t constraint_t::hash() const {
+    size_t result = 0x74FDCBED;
+    result *= left;
+    result *= op;
+    result *= right;
+    result *= value;
+    return result;
+}
+
+void constraint_t::print(void) const {
+    std::cout << "(" << left;
+    if (cnf_left != 0) {
+        std::cout << "[" << cnf_left << "]";
+    }
+
+    switch (op) {
+        case op_t::AND:
+            std::cout << " AND ";
+            break;
+        case op_t::NAND:
+            std::cout << " NAND ";
+            break;
+        case op_t::OR:
+            std::cout << " OR ";
+            break;
+        case op_t::NOR:
+            std::cout << " NOR ";
+            break;
+        case op_t::XOR:
+            std::cout << " XOR ";
+            break;
+    }
+    std::cout << right;
+    if (cnf_right != 0) {
+        std::cout << "[" << cnf_right << "]";
+    }
+    std::cout << ") == " << value;
+    if (cnf_value != 0) {
+        std::cout << "[" << cnf_value << "]";
+    }
+    std::cout << std::endl;
+}
+
+namespace std {
+    template<> struct hash<constraint_t> {
+        size_t operator()(constraint_t const& object) {
+            return object.hash();
+        }
+    };
 }

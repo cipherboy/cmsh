@@ -39,10 +39,16 @@ namespace cmsh {
 
         public:
             bool operator==(const constraint_t& other);
+            bool valueOf(bool left, bool right) const;
+            void print() const;
+
+            size_t hash() const;
 
         protected:
             constraint_t(model_t *m, int l, op_t o, int r);
             void add(model_t *m);
+
+            bool assigned();
             void assign_vars(model_t *m);
 
             static void add_clause(SATSolver *s, vector<Lit>& c, int var_1);
@@ -70,7 +76,13 @@ namespace cmsh {
             unordered_map<int, int> cnf_constraint_map;
 
             vector<constraint_t *> constraints;
+            unordered_map<int, constraint_t*> value_constraint_map;
+            unordered_map<int, unordered_set<constraint_t *>> operand_constraint_map;
+
             unordered_set<int> asserts;
+            unordered_set<int> assumptions;
+
+            unordered_map<int, bool> solution;
 
             lbool solved = l_False;
 
@@ -81,7 +93,12 @@ namespace cmsh {
         private:
             int v_op(int left, op_t op, int right);
             void update_max_vars();
+
             static inline bool to_bool(lbool var, bool negate=false);
+            static inline bool ubv(bool var, bool negate=false);
+
+            void add_reachable();
+            void extend_solution();
 
         protected:
             int next_constraint();
@@ -96,6 +113,8 @@ namespace cmsh {
             void config_conflicts(int64_t max_conflicts);
 
             int var();
+            int cnf(int var);
+
             int v_and(int left, int right);
             int v_nand(int left, int right);
             int v_or(int left, int right);
