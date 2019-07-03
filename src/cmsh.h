@@ -50,17 +50,17 @@ namespace cmsh {
             bool assigned();
             void assign_vars(model_t *m);
 
-            static void add_clause(SATSolver *s, vector<Lit>& c, int var_1);
-            static void add_clause(SATSolver *s, vector<Lit>& c, int var_1, int var_2);
-            static void add_clause(SATSolver *s, vector<Lit>& c, int var_1, int var_2, int var_3);
+            static void add_clause(model_t *m, vector<Lit>& c, int var_1);
+            static void add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2);
+            static void add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2, int var_3);
 
         private:
-            void tseitin(SATSolver *s, vector<Lit>& c);
-            void tseitin_and(SATSolver *s, vector<Lit>& c);
-            void tseitin_nand(SATSolver *s, vector<Lit>& c);
-            void tseitin_or(SATSolver *s, vector<Lit>& c);
-            void tseitin_nor(SATSolver *s, vector<Lit>& c);
-            void tseitin_xor(SATSolver *s, vector<Lit>& c);
+            void tseitin(model_t *m, vector<Lit>& c);
+            void tseitin_and(model_t *m, vector<Lit>& c);
+            void tseitin_nand(model_t *m, vector<Lit>& c);
+            void tseitin_or(model_t *m, vector<Lit>& c);
+            void tseitin_nor(model_t *m, vector<Lit>& c);
+            void tseitin_xor(model_t *m, vector<Lit>& c);
             static Lit to_lit(int var, bool neg=false);
     };
 
@@ -70,6 +70,7 @@ namespace cmsh {
         private:
             int constraint_var = 1;
             int cnf_var = 1;
+            int clause_count = 0;
 
             unordered_map<int, int> constraint_cnf_map;
             unordered_map<int, int> cnf_constraint_map;
@@ -125,5 +126,8 @@ namespace cmsh {
 
             lbool solve(const vector<Lit>* assumptions=0, bool only_indep_solution=false);
             bool val(int constraint_var);
+
+            int num_vars();
+            int num_clauses();
     };
 }

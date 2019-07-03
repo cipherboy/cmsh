@@ -32,7 +32,7 @@ constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
 }
 
 void constraint_t::add(model_t *m) {
-    tseitin(m->solver, m->clause);
+    tseitin(m, m->clause);
 }
 
 bool constraint_t::operator==(const constraint_t& other) {
@@ -77,76 +77,79 @@ bool constraint_t::eval(bool left, bool right) const {
     return false;
 }
 
-void constraint_t::tseitin(SATSolver *s, vector<Lit>& c) {
+void constraint_t::tseitin(model_t *m, vector<Lit>& c) {
     switch (op) {
         case op_t::AND:
-            tseitin_and(s, c);
+            tseitin_and(m, c);
             break;
         case op_t::NAND:
-            tseitin_nand(s, c);
+            tseitin_nand(m, c);
             break;
         case op_t::OR:
-            tseitin_or(s, c);
+            tseitin_or(m, c);
             break;
         case op_t::NOR:
-            tseitin_nor(s, c);
+            tseitin_nor(m, c);
             break;
         case op_t::XOR:
-            tseitin_xor(s, c);
+            tseitin_xor(m, c);
             break;
     }
 }
 
-void constraint_t::tseitin_and(SATSolver *s, vector<Lit>& c) {
-    add_clause(s, c, -cnf_left, -cnf_right, cnf_value);
-    add_clause(s, c, cnf_left, -cnf_value);
-    add_clause(s, c, cnf_right, -cnf_value);
+void constraint_t::tseitin_and(model_t *m, vector<Lit>& c) {
+    add_clause(m, c, -cnf_left, -cnf_right, cnf_value);
+    add_clause(m, c, cnf_left, -cnf_value);
+    add_clause(m, c, cnf_right, -cnf_value);
 }
 
-void constraint_t::tseitin_nand(SATSolver *s, vector<Lit>& c) {
-    add_clause(s, c, -cnf_left, -cnf_right, -cnf_value);
-    add_clause(s, c, cnf_left, cnf_value);
-    add_clause(s, c, cnf_right, cnf_value);
+void constraint_t::tseitin_nand(model_t *m, vector<Lit>& c) {
+    add_clause(m, c, -cnf_left, -cnf_right, -cnf_value);
+    add_clause(m, c, cnf_left, cnf_value);
+    add_clause(m, c, cnf_right, cnf_value);
 }
 
-void constraint_t::tseitin_or(SATSolver *s, vector<Lit>& c) {
-    add_clause(s, c, cnf_left, cnf_right, -cnf_value);
-    add_clause(s, c, -cnf_left, cnf_value);
-    add_clause(s, c, -cnf_right, cnf_value);
+void constraint_t::tseitin_or(model_t *m, vector<Lit>& c) {
+    add_clause(m, c, cnf_left, cnf_right, -cnf_value);
+    add_clause(m, c, -cnf_left, cnf_value);
+    add_clause(m, c, -cnf_right, cnf_value);
 }
 
-void constraint_t::tseitin_nor(SATSolver *s, vector<Lit>& c) {
-    add_clause(s, c, cnf_left, cnf_right, cnf_value);
-    add_clause(s, c, -cnf_left, -cnf_value);
-    add_clause(s, c, -cnf_right, -cnf_value);
+void constraint_t::tseitin_nor(model_t *m, vector<Lit>& c) {
+    add_clause(m, c, cnf_left, cnf_right, cnf_value);
+    add_clause(m, c, -cnf_left, -cnf_value);
+    add_clause(m, c, -cnf_right, -cnf_value);
 }
 
-void constraint_t::tseitin_xor(SATSolver *s, vector<Lit>& c) {
-    add_clause(s, c, -cnf_left, -cnf_right, -cnf_value);
-    add_clause(s, c, cnf_left, cnf_right, -cnf_value);
-    add_clause(s, c, cnf_left, -cnf_right, cnf_value);
-    add_clause(s, c, -cnf_left, cnf_right, cnf_value);
+void constraint_t::tseitin_xor(model_t *m, vector<Lit>& c) {
+    add_clause(m, c, -cnf_left, -cnf_right, -cnf_value);
+    add_clause(m, c, cnf_left, cnf_right, -cnf_value);
+    add_clause(m, c, cnf_left, -cnf_right, cnf_value);
+    add_clause(m, c, -cnf_left, cnf_right, cnf_value);
 }
 
-void constraint_t::add_clause(SATSolver *s, vector<Lit>& c, int var_1) {
+void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1) {
     c.clear();
     c.push_back(to_lit(var_1));
-    s->add_clause(c);
+    m->solver->add_clause(c);
+    m->clause_count += 1;
 }
 
-void constraint_t::add_clause(SATSolver *s, vector<Lit>& c, int var_1, int var_2) {
+void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2) {
     c.clear();
     c.push_back(to_lit(var_1));
     c.push_back(to_lit(var_2));
-    s->add_clause(c);
+    m->solver->add_clause(c);
+    m->clause_count += 1;
 }
 
-void constraint_t::add_clause(SATSolver *s, vector<Lit>& c, int var_1, int var_2, int var_3) {
+void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2, int var_3) {
     c.clear();
     c.push_back(to_lit(var_1));
     c.push_back(to_lit(var_2));
     c.push_back(to_lit(var_3));
-    s->add_clause(c);
+    m->solver->add_clause(c);
+    m->clause_count += 1;
 }
 
 Lit constraint_t::to_lit(int var, bool neg) {

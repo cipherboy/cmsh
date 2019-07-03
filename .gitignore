@@ -72,3 +72,5 @@ Session.vim
 
 # mypy
 .mypy_cache/
+
+perf.data*

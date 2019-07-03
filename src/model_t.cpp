@@ -43,7 +43,11 @@ int model_t::var() {
 }
 
 int model_t::cnf(int var) {
-    return cnf_from_constraint(var);
+    if (cnf_constraint_map.contains(var)) {
+        return cnf_constraint_map[var];
+    }
+
+    return -1;
 }
 
 int model_t::next_constraint() {
@@ -237,7 +241,7 @@ lbool model_t::solve(const vector<Lit>* assumptions, bool only_indep_solution) {
 
     // Add all asserts.
     for (int cnf_assert : asserts) {
-        constraint_t::add_clause(solver, clause, cnf_assert);
+        constraint_t::add_clause(this, clause, cnf_assert);
     }
 
     // Solve the model.
@@ -276,4 +280,12 @@ bool model_t::val(int constraint_var) {
 
     assert(false);
     return false;
+}
+
+int model_t::num_vars() {
+    return cnf_var;
+}
+
+int model_t::num_clauses() {
+    return clause_count;
 }
