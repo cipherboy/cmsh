@@ -69,14 +69,14 @@ namespace cmsh {
             int left;
             op_t op;
             int right;
-            int value;
+            int value = 0;
 
             // When assigned, these are the variables in the CNF for this
             // constraint. These correspond to the values of left, right,
             // and value above.
-            int cnf_left;
-            int cnf_right;
-            int cnf_value;
+            int cnf_left = 0;
+            int cnf_right = 0;
+            int cnf_value = 0;
 
         public:
             // Operator for checking whether or not two 'constraint_t's are
@@ -195,6 +195,9 @@ namespace cmsh {
             vector<Lit> clause;
 
         private:
+            // Helper to find an existing constraint_t if it already exists.
+            int find_constraint(int left, op_t op, int right);
+
             // Helper to create a new constraint_t; not exposed to callers.
             int v_op(int left, op_t op, int right);
 
@@ -298,7 +301,8 @@ namespace cmsh {
             int var();
 
             // Inquire as to the value of the cnf variable for the associated
-            // constraint variable.
+            // constraint variable. Returns 0 when the constraint variable
+            // hasn't yet been assigned a CNF counterpart.
             int cnf(int var);
 
             // These functions create a new gate and add it to the model. The

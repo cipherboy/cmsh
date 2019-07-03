@@ -1,20 +1,22 @@
-#include <cmath>
-#include <vector>
-#include <unordered_map>
-#include <cryptominisat5/cryptominisat.h>
+/*
+ * Implementation of model_t for cmsh's native interface.
+ *
+ * Copyright (C) 2019 Alexander Scheel <alexander.m.scheel@gmail.com>
+ *
+ * See LICENSE in the root of the repository for license information.
+ *
+ * https://github.com/cipherboy/cmsh
+ * High level bindings for Mate Soos's CryptoMiniSat.
+ */
 
 #include "cmsh.h"
-
-using std::vector;
-using std::unordered_map;
-
-using CMSat::SATSolver;
-using CMSat::Lit;
-using CMSat::lbool;
 
 using namespace cmsh;
 
 model_t::model_t(int threads, bool gauss) {
+    // Create a new SATSolver (the CryptoMiniSat interface) with the
+    // specified configuration. Note that all other members are allocated
+    // as needed.
     solver = new SATSolver();
     solver->set_num_threads(threads);
     if (gauss) {
@@ -23,6 +25,8 @@ model_t::model_t(int threads, bool gauss) {
 }
 
 model_t::~model_t() {
+    // Free all constraints in this model. We allocate them in v_op and place
+    // the primary pointer to them in vector<constraint_t *> constraints.
     for (constraint_t *con : constraints) {
         delete con;
     }
@@ -43,22 +47,28 @@ int model_t::var() {
 }
 
 int model_t::cnf(int var) {
+    // Map a constraint variable to its CNF equivalent. Returns 0 if the
+    // variable is ont found.
     if (cnf_constraint_map.contains(var)) {
         return cnf_constraint_map[var];
     }
 
-    return -1;
+    return 0;
 }
 
 int model_t::next_constraint() {
+    // Get the next constraint variable and increment the internal counter.
     int result = constraint_var;
     constraint_var += 1;
 
+    // Explicitly create a new set for operands to place constraints they're
+    // used in.
     operand_constraint_map[result] = unordered_set<constraint_t *>();
     return result;
 }
 
 int model_t::next_cnf() {
+    // Get the next CNF variable and increment the internal counter.
     int result = cnf_var;
     cnf_var += 1;
 
@@ -66,18 +76,30 @@ int model_t::next_cnf() {
 }
 
 int model_t::cnf_from_constraint(int constraint_var) {
+    // Convert a constraint variable to a CNF variable, allocating a new CNF
+    // variable when one isn't assigned.
     if (constraint_cnf_map.contains(constraint_var)) {
+        // When the map contains this variable directly, it should be
+        // positive as the map only contains positive mappings.
         assert(constraint_var > 0);
+        assert(constraint_cnf_map[constraint_var] > 0);
         return constraint_cnf_map[constraint_var];
     } else if (constraint_cnf_map.contains(-constraint_var)) {
+        // When the map contains the negation of this variable, it should
+        // be a negation of a variable and result in looking up a positive
+        // CNF variable -- our resulting CNF variable will thus be negative
+        // as well.
         assert(constraint_var < 0);
         assert(constraint_cnf_map[-constraint_var] > 0);
         return -constraint_cnf_map[-constraint_var];
     }
 
+    // Allocate a new CNF variable and update the maps.
     int cnf_var = next_cnf();
-    constraint_cnf_map[abs(constraint_var)] = abs(cnf_var);
-    cnf_constraint_map[abs(cnf_var)] = abs(constraint_var);
+    assert(cnf_var > 0);
+
+    constraint_cnf_map[abs(constraint_var)] = cnf_var;
+    cnf_constraint_map[cnf_var] = abs(constraint_var);
 
     if (constraint_var < 0) {
         return -cnf_var;
@@ -86,11 +108,41 @@ int model_t::cnf_from_constraint(int constraint_var) {
     return cnf_var;
 }
 
+int model_t::find_constraint(int left, op_t op, int right) {
+    constraint_t *us = new constraint_t(NULL, left, op, right);
+
+    // Check the smaller of the two operand listings for this constraint.
+    // Compare not the pointer value, but the object under the pointer.
+    if (operand_constraint_map[abs(left)].size() < operand_constraint_map[abs(right)].size()) {
+        for (constraint_t *candidate : operand_constraint_map[abs(left)]) {
+            if (*candidate == *us) {
+                return candidate->value;
+            }
+        }
+    } else {
+        for (constraint_t *candidate : operand_constraint_map[abs(right)]) {
+            if (*candidate == *us) {
+                return candidate->value;
+            }
+        }
+    }
+
+    return 0;
+}
+
 int model_t::v_op(int left, op_t op, int right) {
     assert(abs(left) < constraint_var);
     assert(abs(right) < constraint_var);
     assert(operand_constraint_map.contains(abs(left)));
     assert(operand_constraint_map.contains(abs(right)));
+
+    // By checking if the constraint already exists, we can decrease the
+    // size of the model in cases where many of the same operations are
+    // performed. This can be seen in the sudoku native test case.
+    int found_constraint = find_constraint(left, op, right);
+    if (found_constraint != 0) {
+        return found_constraint;
+    }
 
     constraint_t *con = new constraint_t(this, left, op, right);
     constraints.push_back(con);

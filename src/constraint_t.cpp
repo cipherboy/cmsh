@@ -1,19 +1,21 @@
-#include <cmath>
-#include <vector>
-#include <unordered_map>
-#include <cryptominisat5/cryptominisat.h>
+/*
+ * Implementation of constraint_t for cmsh's native interface.
+ *
+ * Copyright (C) 2019 Alexander Scheel <alexander.m.scheel@gmail.com>
+ *
+ * See LICENSE in the root of the repository for license information.
+ *
+ * https://github.com/cipherboy/cmsh
+ * High level bindings for Mate Soos's CryptoMiniSat.
+ */
 
 #include "cmsh.h"
-
-using std::vector;
-using std::unordered_map;
-
-using CMSat::SATSolver;
-using CMSat::Lit;
 
 using namespace cmsh;
 
 constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
+    op = o;
+
     if (l < r) {
         left = l;
         right = r;
@@ -22,28 +24,39 @@ constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
         right = l;
     }
 
-    value = m->next_constraint();
-    assert(value > 0);
-
-    op = o;
-    cnf_left = 0;
-    cnf_right = 0;
-    cnf_value = 0;
+    // Allow constructing a constraint without a model reference: this
+    // will prevent us from assigning a value, but still lets us use the
+    // equality check. Two constraint_t's are equal <=> all inputs are
+    // equal and the operator is equal.
+    if (m != NULL) {
+        value = m->next_constraint();
+        assert(value > 0);
+    }
 }
 
 void constraint_t::add(model_t *m) {
+    // Add the constraint to the model by doing the tseitin transformation
+    // on the gate.
     tseitin(m);
 }
 
 bool constraint_t::operator==(const constraint_t& other) {
+    // Two constraint_t instances are equal <=> the operands are equal and
+    // the operator are equal. The output of the gate may or may not be
+    // present in either of these instances, so ignore it in this check.
     return (left == other.left && op == other.op && right == other.right);
 }
 
 bool constraint_t::assigned() {
+    // Return true if all CNF variables are assigned. Otherwise, a call
+    // to assign_vars is necessary.
     return cnf_left != 0 && cnf_right != 0 && cnf_value != 0;
 }
 
 void constraint_t::assign_vars(model_t *m) {
+    // Assign and allocate CNF variables from the constraint variables.
+    // Note that calling m->cnf_from_constraint(...) will return the same
+    // value, so at worst we incur slight overhead versus an if check.
     cnf_left = m->cnf_from_constraint(left);
     cnf_right = m->cnf_from_constraint(right);
     cnf_value = m->cnf_from_constraint(value);
@@ -68,6 +81,8 @@ bool constraint_t::eval(bool left, bool right) const {
             break;
     }
 
+    // Not reachable as the above switch statement handles all possible
+    // values of operator and returns.
     assert(false);
     return false;
 }
