@@ -26,6 +26,7 @@ test: check
 
 check: check-native
 	build/basic_api
+	build/sudoku
 	# pytest-3
 
 check-native: native build/basic_api build/sudoku

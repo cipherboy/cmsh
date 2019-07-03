@@ -139,6 +139,36 @@ void model_t::update_max_vars() {
     }
 }
 
+inline Lit model_t::to_lit(int var, bool neg) const {
+    bool sign = (var < 0) ^ neg;
+    return Lit(abs(var), sign);
+}
+
+
+void model_t::add_clause(int var_1) {
+    clause.clear();
+    clause.push_back(to_lit(var_1));
+    solver->add_clause(clause);
+    clause_count += 1;
+}
+
+void model_t::add_clause(int var_1, int var_2) {
+    clause.clear();
+    clause.push_back(to_lit(var_1));
+    clause.push_back(to_lit(var_2));
+    solver->add_clause(clause);
+    clause_count += 1;
+}
+
+void model_t::add_clause(int var_1, int var_2, int var_3) {
+    clause.clear();
+    clause.push_back(to_lit(var_1));
+    clause.push_back(to_lit(var_2));
+    clause.push_back(to_lit(var_3));
+    solver->add_clause(clause);
+    clause_count += 1;
+}
+
 void model_t::add_reachable() {
     unordered_set<int> visited;
     unordered_set<int> queue;
@@ -191,7 +221,7 @@ void model_t::extend_solution() {
         int var = cnf_constraint_map[c_var];
         assert(var > 0);
         assert((std::size_t) var < cnf_solution.size());
-        solution[var] = to_bool(cnf_solution[c_var], var < 0);
+        solution[var] = to_bool(cnf_solution[c_var]);
 
         if (operand_constraint_map.contains(var) && !operand_constraint_map[var].empty()) {
             queue.insert(var);
@@ -242,7 +272,7 @@ lbool model_t::solve(const vector<Lit>* assumptions, bool only_indep_solution) {
 
     // Add all asserts.
     for (int cnf_assert : asserts) {
-        constraint_t::add_clause(this, clause, cnf_assert);
+        add_clause(cnf_assert);
     }
 
     // Solve the model.
@@ -286,10 +316,18 @@ bool model_t::val(int constraint_var) {
     return false;
 }
 
-int model_t::num_vars() {
+int model_t::num_constraint_vars() {
+    return constraint_var;
+}
+
+int model_t::num_constraints() {
+    return constraints.size();
+}
+
+int model_t::num_cnf_vars() {
     return cnf_var;
 }
 
-int model_t::num_clauses() {
+int model_t::num_cnf_clauses() {
     return clause_count;
 }

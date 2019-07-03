@@ -32,16 +32,11 @@ constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
 }
 
 void constraint_t::add(model_t *m) {
-    tseitin(m, m->clause);
+    tseitin(m);
 }
 
 bool constraint_t::operator==(const constraint_t& other) {
-    if (left == other.left && op == other.op && right == other.right) {
-        assert(value == other.value);
-        return true;
-    }
-
-    return false;
+    return (left == other.left && op == other.op && right == other.right);
 }
 
 bool constraint_t::assigned() {
@@ -77,90 +72,55 @@ bool constraint_t::eval(bool left, bool right) const {
     return false;
 }
 
-void constraint_t::tseitin(model_t *m, vector<Lit>& c) {
+void constraint_t::tseitin(model_t *m) {
     switch (op) {
         case op_t::AND:
-            tseitin_and(m, c);
+            tseitin_and(m);
             break;
         case op_t::NAND:
-            tseitin_nand(m, c);
+            tseitin_nand(m);
             break;
         case op_t::OR:
-            tseitin_or(m, c);
+            tseitin_or(m);
             break;
         case op_t::NOR:
-            tseitin_nor(m, c);
+            tseitin_nor(m);
             break;
         case op_t::XOR:
-            tseitin_xor(m, c);
+            tseitin_xor(m);
             break;
     }
 }
 
-void constraint_t::tseitin_and(model_t *m, vector<Lit>& c) {
-    add_clause(m, c, -cnf_left, -cnf_right, cnf_value);
-    add_clause(m, c, cnf_left, -cnf_value);
-    add_clause(m, c, cnf_right, -cnf_value);
+void constraint_t::tseitin_and(model_t *m) {
+    m->add_clause(-cnf_left, -cnf_right, cnf_value);
+    m->add_clause(cnf_left, -cnf_value);
+    m->add_clause(cnf_right, -cnf_value);
 }
 
-void constraint_t::tseitin_nand(model_t *m, vector<Lit>& c) {
-    add_clause(m, c, -cnf_left, -cnf_right, -cnf_value);
-    add_clause(m, c, cnf_left, cnf_value);
-    add_clause(m, c, cnf_right, cnf_value);
+void constraint_t::tseitin_nand(model_t *m) {
+    m->add_clause(-cnf_left, -cnf_right, -cnf_value);
+    m->add_clause(cnf_left, cnf_value);
+    m->add_clause(cnf_right, cnf_value);
 }
 
-void constraint_t::tseitin_or(model_t *m, vector<Lit>& c) {
-    add_clause(m, c, cnf_left, cnf_right, -cnf_value);
-    add_clause(m, c, -cnf_left, cnf_value);
-    add_clause(m, c, -cnf_right, cnf_value);
+void constraint_t::tseitin_or(model_t *m) {
+    m->add_clause(cnf_left, cnf_right, -cnf_value);
+    m->add_clause(-cnf_left, cnf_value);
+    m->add_clause(-cnf_right, cnf_value);
 }
 
-void constraint_t::tseitin_nor(model_t *m, vector<Lit>& c) {
-    add_clause(m, c, cnf_left, cnf_right, cnf_value);
-    add_clause(m, c, -cnf_left, -cnf_value);
-    add_clause(m, c, -cnf_right, -cnf_value);
+void constraint_t::tseitin_nor(model_t *m) {
+    m->add_clause(cnf_left, cnf_right, cnf_value);
+    m->add_clause(-cnf_left, -cnf_value);
+    m->add_clause(-cnf_right, -cnf_value);
 }
 
-void constraint_t::tseitin_xor(model_t *m, vector<Lit>& c) {
-    add_clause(m, c, -cnf_left, -cnf_right, -cnf_value);
-    add_clause(m, c, cnf_left, cnf_right, -cnf_value);
-    add_clause(m, c, cnf_left, -cnf_right, cnf_value);
-    add_clause(m, c, -cnf_left, cnf_right, cnf_value);
-}
-
-void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1) {
-    c.clear();
-    c.push_back(to_lit(var_1));
-    m->solver->add_clause(c);
-    m->clause_count += 1;
-}
-
-void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2) {
-    c.clear();
-    c.push_back(to_lit(var_1));
-    c.push_back(to_lit(var_2));
-    m->solver->add_clause(c);
-    m->clause_count += 1;
-}
-
-void constraint_t::add_clause(model_t *m, vector<Lit>& c, int var_1, int var_2, int var_3) {
-    c.clear();
-    c.push_back(to_lit(var_1));
-    c.push_back(to_lit(var_2));
-    c.push_back(to_lit(var_3));
-    m->solver->add_clause(c);
-    m->clause_count += 1;
-}
-
-Lit constraint_t::to_lit(int var, bool neg) {
-    assert(var != 0);
-
-    bool sign = neg;
-    if (var < 0) {
-        sign = !sign;
-    }
-
-    return Lit(abs(var), sign);
+void constraint_t::tseitin_xor(model_t *m) {
+    m->add_clause(-cnf_left, -cnf_right, -cnf_value);
+    m->add_clause(cnf_left, cnf_right, -cnf_value);
+    m->add_clause(cnf_left, -cnf_right, cnf_value);
+    m->add_clause(-cnf_left, cnf_right, cnf_value);
 }
 
 size_t constraint_t::hash() const {

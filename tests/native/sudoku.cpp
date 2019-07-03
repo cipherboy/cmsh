@@ -4,7 +4,7 @@
 using namespace cmsh;
 using namespace std;
 
-#define GSQRT (4)
+#define GSQRT (3)
 #define GMAX (GSQRT*GSQRT)
 
 int to_num(model_t *m, int square[GMAX]) {
@@ -152,7 +152,10 @@ int main() {
 
     cout << "Starting solving..." << endl;
     assert(m.solve() == l_True);
-    cout << "    ...done with " << m.num_vars() << " vars and " << m.num_clauses() << " clauses." << endl;
+    cout << "    ...done solving model with circuit size ("
+         << m.num_constraint_vars() << ", " << m.num_constraints()
+         << ") and CNF size (" << m.num_cnf_vars() << ", "
+         << m.num_cnf_clauses() << ")." << endl;
 
     cout << "top_left" << endl;
     print_solution(&m, grid_tl);
