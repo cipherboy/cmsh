@@ -190,6 +190,7 @@ void model_t::extend_solution() {
 
         int var = cnf_constraint_map[c_var];
         assert(var > 0);
+        assert((std::size_t) var < cnf_solution.size());
         solution[var] = to_bool(cnf_solution[c_var], var < 0);
 
         if (operand_constraint_map.contains(var) && !operand_constraint_map[var].empty()) {
@@ -247,8 +248,11 @@ lbool model_t::solve(const vector<Lit>* assumptions, bool only_indep_solution) {
     // Solve the model.
     solved = solver->solve(assumptions, only_indep_solution);
 
-    // Calculate values for all values determined by the model.
-    extend_solution();
+    if (solved == l_True) {
+        // Calculate values for all values determined by the model when the
+        // solution has been found.
+        extend_solution();
+    }
 
     return solved;
 }
