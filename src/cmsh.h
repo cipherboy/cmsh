@@ -328,7 +328,7 @@ namespace cmsh {
             void v_assert(const vector<int> vars);
 
             // Solve the model under the specified set of assumptions.
-            lbool solve(const vector<Lit>* assumptions=0, bool only_indep_solution=false);
+            lbool solve(bool only_indep_solution=false);
 
             // Get the value of a constraint variable after solve returns
             // l_True. If solve returns anything other than l_True, and

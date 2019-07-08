@@ -284,14 +284,14 @@ void model_t::extend_solution() {
 
     solution = unordered_map<int, bool>();
 
+    assert(cnf_solution.size() == (size_t)cnf_var);
+
     for (int c_var = 1; c_var < cnf_var; c_var++) {
         if (!cnf_constraint_map.contains(c_var)) {
             assert(false);
         }
 
         int var = cnf_constraint_map[c_var];
-        assert(var > 0);
-        assert((std::size_t) var < cnf_solution.size());
         solution[var] = to_bool(cnf_solution[c_var]);
 
         if (operand_constraint_map.contains(var) && !operand_constraint_map[var].empty()) {
@@ -342,7 +342,7 @@ void model_t::extend_solution() {
     }
 }
 
-lbool model_t::solve(const vector<Lit>* assumptions, bool only_indep_solution) {
+lbool model_t::solve(bool only_indep_solution) {
     // Add all clauses reachable from an assert or an asusmption.
     add_reachable();
 
@@ -352,7 +352,7 @@ lbool model_t::solve(const vector<Lit>* assumptions, bool only_indep_solution) {
     }
 
     // Solve the model.
-    solved = solver->solve(assumptions, only_indep_solution);
+    solved = solver->solve(0, only_indep_solution);
 
     if (solved == l_True) {
         // Calculate values for all values determined by the model when the
@@ -384,10 +384,14 @@ inline bool model_t::ubv(bool value, bool negated) {
 
 bool model_t::val(int constraint_var) {
     if (solved == l_True) {
-        assert(solution.contains(constraint_var));
-        return solution[constraint_var];
-    }
+        if (constraint_var > 0) {
+            assert(solution.contains(constraint_var));
+            return solution[constraint_var];
+        }
 
+        assert(solution.contains(abs(constraint_var)));
+        return !solution[abs(constraint_var)];
+    }
     assert(false);
     return false;
 }
