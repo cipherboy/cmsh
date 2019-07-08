@@ -3,7 +3,7 @@ This module contains the main Module class.
 """
 
 
-from pycryptosat import Solver
+from ._native import model as native_model
 
 from .var import Variable
 from .vec import Vector
