@@ -16,21 +16,43 @@
 
 using namespace cmsh;
 
+// Validate the internal state of the native_model object: self should never
+// be NULL and self->model should not be NULL when the instance is
+// initialized. If either of these don't hold, raise an exception telling the
+// user to initialize the instance first; this prevents an ugly segfault like
+// pycryptosat has had.
+#define check_null \
+    if (self == NULL || self->model == NULL) { \
+        PyErr_SetString(PyExc_ValueError, "Error! You need to initialize (with __init__) the native model before calling this function."); \
+    }
+
+// A v_op method common implementation. This lets us implement it once (here)
+// and use the macro everywhere. Left and right are keyword arguments, though
+// really need not be.
+#define v_op(v_method) \
+    char *kwlist[] = {(char*)"left", (char *)"right", NULL}; \
+    int left = 0; \
+    int right = 0; \
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ii", kwlist, &left, &right)) { \
+        return NULL; \
+    } \
+    check_null \
+    int result = self->model->v_method(left, right); \
+    return PyLong_FromLong(result);
+
+
+// PyObject definition for wrapping the cmsh native interface.
 typedef struct {
+    // Become a PyObject struct... :)
     PyObject_HEAD
 
-    /* Members for cmsh's native bindings */
+    /* Members for cmsh's native bindings: a pointer to a model_t instance */
     model_t *model;
 } native_model;
 
 PyDoc_STRVAR(config_timeout_doc,
-    "config_timeout(double max_time)\n"
+    "void config_timeout(double max_time)\n"
 );
-
-#define check_null \
-    if (self == NULL || self->model == NULL) { \
-        PyErr_SetString(PyExc_ValueError, "Error! You need to initialize the native model before calling this function."); \
-    }
 
 static PyObject *config_timeout(native_model *self, PyObject *args, PyObject *kwds) {
     static char *kwlist[] = {(char *)"max_time", NULL};
@@ -47,7 +69,7 @@ static PyObject *config_timeout(native_model *self, PyObject *args, PyObject *kw
 }
 
 PyDoc_STRVAR(config_conflicts_doc,
-    "config_conflicts(int64_t max_conflicts)\n"
+    "void config_conflicts(int64_t max_conflicts)\n"
 );
 
 static PyObject *config_conflicts(native_model *self, PyObject *args, PyObject *kwds) {
@@ -65,14 +87,130 @@ static PyObject *config_conflicts(native_model *self, PyObject *args, PyObject *
 }
 
 PyDoc_STRVAR(var_doc,
-    "var()\n"
+    "int var()\n"
 );
 
-static PyObject *var(native_model *self, PyObject *args) {
+static PyObject *var(native_model *self, PyObject *) {
     check_null
 
     int new_variable = self->model->var();
     return PyLong_FromLong(new_variable);
+}
+
+PyDoc_STRVAR(cnf_doc,
+    "int cnf(int var)\n"
+);
+
+static PyObject *cnf(native_model *self, PyObject *args, PyObject *kwds) {
+    char *kwlist[] = {(char*)"var", NULL};
+    int constraint_var = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &constraint_var)) {
+        return NULL;
+    }
+
+    check_null
+
+    int cnf_variable = self->model->cnf(constraint_var);
+    return PyLong_FromLong(cnf_variable);
+}
+
+PyDoc_STRVAR(v_and_doc,
+    "int v_and(int left, int right)\n"
+);
+
+static PyObject *v_and(native_model *self, PyObject *args, PyObject *kwds) {
+    v_op(v_and)
+}
+
+PyDoc_STRVAR(v_nand_doc,
+    "int v_nand(int left, int right)\n"
+);
+
+static PyObject *v_nand(native_model *self, PyObject *args, PyObject *kwds) {
+    v_op(v_nand)
+}
+
+PyDoc_STRVAR(v_or_doc,
+    "int v_or(int left, int right)\n"
+);
+
+static PyObject *v_or(native_model *self, PyObject *args, PyObject *kwds) {
+    v_op(v_or)
+}
+
+PyDoc_STRVAR(v_nor_doc,
+    "int v_nor(int left, int right)\n"
+);
+
+static PyObject *v_nor(native_model *self, PyObject *args, PyObject *kwds) {
+    v_op(v_nor)
+}
+
+PyDoc_STRVAR(v_xor_doc,
+    "int v_xor(int left, int right)\n"
+);
+
+static PyObject *v_xor(native_model *self, PyObject *args, PyObject *kwds) {
+    v_op(v_xor)
+}
+
+PyDoc_STRVAR(v_assert_doc,
+    "void v_assert(int var)\n"
+);
+
+static PyObject *v_assert(native_model *self, PyObject *args, PyObject *kwds) {
+    char *kwlist[] = {(char*)"var", NULL};
+    int constraint_var = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &constraint_var)) {
+        return NULL;
+    }
+
+    check_null;
+
+    self->model->v_assert(constraint_var);
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(solve_doc,
+    "lbool solve()\n"
+);
+
+static PyObject *solve(native_model *self, PyObject *args) {
+    check_null;
+
+    lbool ret = self->model->solve();
+    if (ret == l_True) {
+        Py_RETURN_TRUE;
+    }
+
+    if (ret == l_False) {
+        Py_RETURN_FALSE;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(val_doc,
+    "bool val(int var)\n"
+);
+
+static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
+    char *kwlist[] = {(char*)"var", NULL};
+    int constraint_var = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &constraint_var)) {
+        return NULL;
+    }
+
+    check_null;
+
+    if (self->model->val(constraint_var)) {
+        Py_RETURN_TRUE;
+    }
+
+    Py_RETURN_FALSE;
 }
 
 static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
@@ -80,11 +218,13 @@ static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
     int threads = 1;
     bool gauss = true;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "ip", kwlist, &threads, &gauss)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ip", kwlist, &threads, &gauss)) {
         return -1;
     }
 
-    check_null
+    if (threads < 1) {
+        threads = 1;
+    }
 
     if (self->model != NULL) {
         delete self->model;
@@ -108,6 +248,15 @@ static PyMethodDef model_methods[] = {
     {"config_timeout", (PyCFunction)config_timeout, METH_VARARGS | METH_KEYWORDS, config_timeout_doc},
     {"config_conflicts", (PyCFunction)config_conflicts, METH_VARARGS | METH_KEYWORDS, config_conflicts_doc},
     {"var", (PyCFunction)var, METH_VARARGS, var_doc},
+    {"cnf", (PyCFunction)cnf, METH_VARARGS | METH_KEYWORDS, cnf_doc},
+    {"v_and", (PyCFunction)v_and, METH_VARARGS | METH_KEYWORDS, v_and_doc},
+    {"v_nand", (PyCFunction)v_nand, METH_VARARGS | METH_KEYWORDS, v_nand_doc},
+    {"v_or", (PyCFunction)v_or, METH_VARARGS | METH_KEYWORDS, v_or_doc},
+    {"v_nor", (PyCFunction)v_nor, METH_VARARGS | METH_KEYWORDS, v_nor_doc},
+    {"v_xor", (PyCFunction)v_xor, METH_VARARGS | METH_KEYWORDS, v_xor_doc},
+    {"v_assert", (PyCFunction)v_assert, METH_VARARGS | METH_KEYWORDS, v_assert_doc},
+    {"solve", (PyCFunction)solve, METH_VARARGS, solve_doc},
+    {"val", (PyCFunction)val, METH_VARARGS | METH_KEYWORDS, val_doc},
     {NULL, NULL, 0, NULL},
 };
 
@@ -118,22 +267,22 @@ static PyTypeObject native_model_type = {
     0, // tp_itemsize -- zero, since we don't increase in size based on the
        // number of elements we hold
     (destructor) model_dealloc, // tp_dealloc
-    NULL, // tp_print
-    NULL, // tp_getattr
-    NULL, // tp_setattr
-    NULL, // tp_as_async
-    NULL, // tp_repr
-    NULL, // tp_as_number
-    NULL, // tp_as_sequence
-    NULL, // tp_as_mapping
-    NULL, // tp_hash
-    NULL, // tp_call
-    NULL, // tp_str
-    NULL, // tp_getattro
-    NULL, // tp_setattro
-    NULL, // tp_as_buffer
+    0, // tp_print
+    0, // tp_getattr
+    0, // tp_setattr
+    0, // tp_as_async
+    0, // tp_repr
+    0, // tp_as_number
+    0, // tp_as_sequence
+    0, // tp_as_mapping
+    0, // tp_hash
+    0, // tp_call
+    0, // tp_str
+    0, // tp_getattro
+    0, // tp_setattro
+    0, // tp_as_buffer
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, // tp_flags
-    NULL, // tp_doc
+    0, // tp_doc
     0, // tp_traverse
     0, // tp_clear
     0, // tp_richcompare
@@ -151,16 +300,6 @@ static PyTypeObject native_model_type = {
     (initproc)model_init, // tp_init
     0, // tp_alloc
     &PyType_GenericNew, // tp_new
-    0, // tp_free
-    0, // tp_is_gc
-    0, // tp_bases
-    0, // tp_mro
-    0, // tp_cache
-    0, // tp_subclasses
-    0, // tp_weaklist
-    0, // tp_del
-    0, // tp_version_tag
-    0, // tp_finalize
 };
 
 /*
