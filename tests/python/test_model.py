@@ -10,8 +10,6 @@ def test_invalid_usages():
         mod.add_assert(False)
     with pytest.raises(ValueError):
         mod.to_vector(1024, 2)
-    with pytest.raises(ValueError):
-        mod.neg_var(1024)
     with pytest.raises(TypeError):
         mod.neg_var(set())
     with pytest.raises(ValueError):
@@ -20,25 +18,6 @@ def test_invalid_usages():
         mod.add_assume(1024)
     with pytest.raises(ValueError):
         mod.remove_assume(True)
-    with pytest.raises(ValueError):
-        mod.add_clause([1024])
-    with pytest.raises(ValueError):
-        mod.add_clauses([[1024]])
-    with pytest.raises(ValueError):
-        mod.add_clause([True])
-    with pytest.raises(ValueError):
-        mod.add_clause([False])
-    with pytest.raises(ValueError):
-        mod.add_clauses([[True, 1, -1]])
-
-
-def test_basic_clauses():
-    mod = cmsh.Model()
-    a = mod.var()
-
-    mod.add_clause([1])
-    mod.add_clause([-1])
-    mod.add_clauses([[-1, a]])
 
 
 def test_negate_solution():

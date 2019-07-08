@@ -107,23 +107,23 @@ def test_repeated_gates():
 
     first_gate = v_and(a, b)
     second_gate = v_and(a, b)
-    assert repr(first_gate) == repr(second_gate)
+    assert int(first_gate) == int(second_gate)
 
     first_gate = v_nand(a, b)
     second_gate = v_nand(a, b)
-    assert repr(first_gate) == repr(second_gate)
+    assert int(first_gate) == int(second_gate)
 
     first_gate = v_or(a, b)
     second_gate = v_or(a, b)
-    assert repr(first_gate) == repr(second_gate)
+    assert int(first_gate) == int(second_gate)
 
     first_gate = v_nor(a, b)
     second_gate = v_nor(a, b)
-    assert repr(first_gate) == repr(second_gate)
+    assert int(first_gate) == int(second_gate)
 
     first_gate = v_xor(a, b)
     second_gate = v_xor(a, b)
-    assert repr(first_gate) == repr(second_gate)
+    assert int(first_gate) == int(second_gate)
 
 
 def test_swapped_gates():
@@ -134,7 +134,6 @@ def test_swapped_gates():
     first_gate = a & b
     second_gate = b & a
     assert int(first_gate) == int(second_gate)
-    assert repr(first_gate) == repr(second_gate)
 
 
 def test_abs():
