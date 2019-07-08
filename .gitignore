@@ -74,3 +74,4 @@ Session.vim
 .mypy_cache/
 
 perf.data*
+gmon.out
