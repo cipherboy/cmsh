@@ -9,9 +9,25 @@
  * High level bindings for Mate Soos's CryptoMiniSat.
  */
 
+#include <set>
 #include "cmsh.h"
 
+using std::set;
 using namespace cmsh;
+
+// Define macros for building a visited "set": since most every variable
+// will be visited under most models, it makes sense to put this in a uint64_t
+// backed array instead of a complicated unordered_set instance.
+//
+// If the user wishes to use the unordered_set instance, they can comment
+// out the second macro definitions and use those instead.
+#define declare_visited uint64_t *visited = (uint64_t*)calloc((constraint_var / 64) + 1, sizeof(uint64_t))
+#define bit(__pos) (((uint64_t) __pos) & 63ULL)
+#define is_visited(__pos) ((visited[(__pos)/64] & (1ULL << bit(__pos))) == (1ULL << bit(__pos)))
+#define visit(__pos) visited[(__pos)/64] = visited[(__pos)/64] | (1ULL << bit(__pos))
+/*#define declare_visited unordered_set<int> visited
+#define is_visited(pos) (visited.contains(pos))
+#define visit(pos) visited.insert(pos)*/
 
 model_t::model_t(int threads, bool gauss) {
     // Create a new SATSolver (the CryptoMiniSat interface) with the
@@ -222,9 +238,8 @@ void model_t::add_clause(int var_1, int var_2, int var_3) {
 }
 
 void model_t::add_reachable() {
-    unordered_set<int> visited;
-    unordered_set<int> queue;
-
+    declare_visited;
+    set<int> queue;
     vector<constraint_t *> to_add;
 
     for (int cnf_assert : asserts) {
@@ -234,10 +249,10 @@ void model_t::add_reachable() {
 
     while (!queue.empty()) {
         int var = queue.extract(queue.begin()).value();
-        if (visited.contains(var)) {
+        if (is_visited(var)) {
             continue;
         }
-        visited.insert(var);
+        visit(var);
 
         if (value_constraint_map.contains(var)) {
             constraint_t *con = value_constraint_map[var];
@@ -246,8 +261,12 @@ void model_t::add_reachable() {
                 to_add.push_back(con);
             }
 
-            queue.insert(abs(con->left));
-            queue.insert(abs(con->right));
+            if (!is_visited(abs(con->left))) {
+                queue.insert(abs(con->left));
+            }
+            if (!is_visited(abs(con->right))) {
+                queue.insert(abs(con->right));
+            }
         }
     }
 
@@ -260,7 +279,7 @@ void model_t::add_reachable() {
 
 void model_t::extend_solution() {
     const vector<lbool>& cnf_solution = solver->get_model();
-    unordered_set<int> visited;
+    declare_visited;
     unordered_set<int> queue;
 
     solution = unordered_map<int, bool>();
@@ -282,11 +301,12 @@ void model_t::extend_solution() {
 
     while (!queue.empty()) {
         int var = queue.extract(queue.begin()).value();
-        if (visited.contains(var)) {
+        if (is_visited(var)) {
             continue;
         }
+        visit(var);
+
         bool var_value = solution[var];
-        visited.insert(var);
 
         for (constraint_t *con : operand_constraint_map[var]) {
             if (solution.contains(con->value)) {
@@ -302,7 +322,9 @@ void model_t::extend_solution() {
                 bool con_value = con->eval(ubv(var_value, con->left < 0), ubv(right_value, con->right < 0));
                 solution[con->value] = con_value;
 
-                queue.insert(con->value);
+                if (!is_visited(con->value)) {
+                    queue.insert(con->value);
+                }
             } else {
                 if (!solution.contains(abs(con->left))) {
                     continue;
@@ -312,7 +334,9 @@ void model_t::extend_solution() {
                 bool con_value = con->eval(ubv(left_value, con->left < 0), ubv(var_value, con->right < 0));
                 solution[con->value] = con_value;
 
-                queue.insert(con->value);
+                if (!is_visited(con->value)) {
+                    queue.insert(con->value);
+                }
             }
         }
     }

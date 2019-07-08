@@ -22,6 +22,8 @@ using CMSat::SATSolver;
 using CMSat::Lit;
 using CMSat::lbool;
 
+#pragma once
+
 namespace cmsh {
     /*
      * Internal detail: what operator is used in a constraint / circuit gate.
