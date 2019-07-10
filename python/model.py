@@ -185,6 +185,13 @@ class Model:
         assert isinstance(left, int)
         assert isinstance(right, int)
 
+        if abs(left) > self.solver.num_constraint_vars():
+            msg = "Passed left identifier %d exceeds number of vars: %d" % (left, self.solver.num_constraint_vars())
+            raise ValueError(msg)
+        if abs(right) > self.solver.num_constraint_vars():
+            msg = "Passed right identifier %d exceeds number of vars: %d" % (right, self.solver.num_constraint_vars())
+            raise ValueError(msg)
+
         if op == 'and':
             return Variable(self, self.solver.v_and(left, right))
         elif op == 'nand':
@@ -227,11 +234,14 @@ class Model:
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
         if vtype == int:
-            # if var > self.variables:
-            #     msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
-            #     raise ValueError(msg)
+            if abs(var) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
+                raise ValueError(msg)
             self.solver.v_assume(var)
         else:
+            if abs(var.identifier) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+                raise ValueError(msg)
             self.solver.v_assume(var.identifier)
 
     def remove_assume(self, var):
@@ -256,10 +266,13 @@ class Model:
             msg = "Cannot pass bool as an identifier into CNF clause"
             raise ValueError(msg)
         if vtype == int:
-            if var > self.variables:
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
+            if abs(var) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
                 raise ValueError(msg)
             return var
+        if abs(var.identifier) > self.solver.num_constraint_vars():
+            msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+            raise ValueError(msg)
         return var.identifier
 
     def negate_solution(self, variables):

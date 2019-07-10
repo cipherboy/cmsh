@@ -26,6 +26,13 @@ using namespace cmsh;
         PyErr_SetString(PyExc_ValueError, "Error! You need to initialize (with __init__) the native model before calling this function."); \
     }
 
+// A common implementation for functions which return a value. This lets us
+// implement it once here and reuse the macro everywhere.
+#define get_int_value(v_method) \
+    check_null \
+    int result = self->model->v_method(); \
+    return PyLong_FromLong(result);
+
 // A v_op method common implementation. This lets us implement it once (here)
 // and use the macro everywhere. Left and right are keyword arguments, though
 // really need not be.
@@ -91,10 +98,7 @@ PyDoc_STRVAR(var_doc,
 );
 
 static PyObject *var(native_model *self, PyObject *) {
-    check_null
-
-    int new_variable = self->model->var();
-    return PyLong_FromLong(new_variable);
+    get_int_value(var);
 }
 
 PyDoc_STRVAR(cnf_doc,
@@ -249,6 +253,38 @@ static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
     Py_RETURN_FALSE;
 }
 
+PyDoc_STRVAR(num_constraint_vars_doc,
+    "int num_constraint_vars()\n"
+);
+
+static PyObject *num_constraint_vars(native_model *self, PyObject *) {
+    get_int_value(num_constraint_vars);
+}
+
+PyDoc_STRVAR(num_constraints_doc,
+    "int num_constraints()\n"
+);
+
+static PyObject *num_constraints(native_model *self, PyObject *) {
+    get_int_value(num_constraints);
+}
+
+PyDoc_STRVAR(num_cnf_vars_doc,
+    "int num_cnf_vars()\n"
+);
+
+static PyObject *num_cnf_vars(native_model *self, PyObject *) {
+    get_int_value(num_cnf_vars);
+}
+
+PyDoc_STRVAR(num_cnf_clauses_doc,
+    "int num_cnf_clauses()\n"
+);
+
+static PyObject *num_cnf_clauses(native_model *self, PyObject *) {
+    get_int_value(num_cnf_clauses);
+}
+
 static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
     char *kwlist[] = {(char *)"threads", (char *)"gauss", NULL};
     int threads = 1;
@@ -295,6 +331,10 @@ static PyMethodDef model_methods[] = {
     {"v_unassume", (PyCFunction)v_unassume, METH_VARARGS | METH_KEYWORDS, v_unassume_doc},
     {"solve", (PyCFunction)solve, METH_VARARGS, solve_doc},
     {"val", (PyCFunction)val, METH_VARARGS | METH_KEYWORDS, val_doc},
+    {"num_constraint_vars", (PyCFunction)num_constraint_vars, METH_VARARGS, num_constraint_vars_doc},
+    {"num_constraints", (PyCFunction)num_constraints, METH_VARARGS, num_constraints_doc},
+    {"num_cnf_vars", (PyCFunction)num_cnf_vars, METH_VARARGS, num_cnf_vars_doc},
+    {"num_cnf_clauses", (PyCFunction)num_cnf_clauses, METH_VARARGS, num_cnf_clauses_doc},
     {NULL, NULL, 0, NULL},
 };
 
