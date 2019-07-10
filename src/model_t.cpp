@@ -200,6 +200,17 @@ void model_t::v_assert(const vector<int> vars) {
     }
 }
 
+void model_t::v_assume(int var) {
+    int cnf_var = cnf_from_constraint(var);
+    assumptions.insert(cnf_var);
+}
+
+void model_t::v_unassume(int var) {
+    int cnf_var = cnf_from_constraint(var);
+    assumptions.erase(cnf_var);
+    assumptions.erase(-cnf_var);
+}
+
 void model_t::update_max_vars() {
     int to_add = cnf_var - solver->nVars();
     if (to_add > 0) {
@@ -351,8 +362,14 @@ lbool model_t::solve(bool only_indep_solution) {
         add_clause(cnf_assert);
     }
 
+    // Build assumptions.
+    vector<Lit> lit_assumptions;
+    for (int cnf_assume : assumptions) {
+        lit_assumptions.push_back(to_lit(cnf_assume));
+    }
+
     // Solve the model.
-    solved = solver->solve(0, only_indep_solution);
+    solved = solver->solve(&lit_assumptions, only_indep_solution);
 
     if (solved == l_True) {
         // Calculate values for all values determined by the model when the

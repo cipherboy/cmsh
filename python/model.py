@@ -227,13 +227,12 @@ class Model:
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
         if vtype == int:
-            if var > self.variables:
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
-                raise ValueError(msg)
-            tmp_var = Variable(self, identifier=var)
-            self.add_assert(tmp_var | -tmp_var)
+            # if var > self.variables:
+            #     msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
+            #     raise ValueError(msg)
+            self.solver.v_assume(var)
         else:
-            self.add_assert(var | -var)
+            self.solver.v_assume(var.identifier)
 
     def remove_assume(self, var):
         """
@@ -245,6 +244,11 @@ class Model:
         vtype = type(var)
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
+        if vtype == int:
+            self.solver.v_unassume(var)
+        else:
+            self.solver.v_unassume(var.identifier)
+
 
     def __to_ident__(self, var):
         vtype = type(var)

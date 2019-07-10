@@ -176,10 +176,12 @@ namespace cmsh {
 
 
             // == CNF Solving == //
-            // The base assertions in our circuit constraint system.
+            // The base assertions in our circuit constraint system, given in
+            // terms of CNF variables.
             unordered_set<int> asserts;
 
-            // Assumptions to solve the model under, if any.
+            // Assumptions to solve the model under, if any. Given in terms of
+            // CNF variables.
             unordered_set<int> assumptions;
 
             // Solution to our model, representing a mapping between a
@@ -320,12 +322,22 @@ namespace cmsh {
             // Assert that a single variable is true. A negative variable
             // identifier can be passed here, in which case the negation
             // of the variable is asserted to be true, i.e., the variable
-            // is asserted to be false.
+            // is asserted to be false. Note that these cannot be removed
+            // once added, unlike assumptions.
             void v_assert(int var);
 
             // Same as v_assert(int var) except that it takes a series of
             // variables to assert instead of a single variable.
             void v_assert(const vector<int> vars);
+
+            // Add an assumption about the state of a variable to the model.
+            // A negative assumption can be passed by making var negative.
+            void v_assume(int var);
+
+            // Remove an assumption about the state of a variable to the
+            // model. This removes both positive and negative assumptions
+            // about the variable.
+            void v_unassume(int var);
 
             // Solve the model under the specified set of assumptions.
             lbool solve(bool only_indep_solution=false);

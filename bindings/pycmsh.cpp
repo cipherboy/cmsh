@@ -173,6 +173,42 @@ static PyObject *v_assert(native_model *self, PyObject *args, PyObject *kwds) {
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(v_assume_doc,
+    "void v_assume(int var)\n"
+);
+
+static PyObject *v_assume(native_model *self, PyObject *args, PyObject *kwds) {
+    char *kwlist[] = {(char*)"var", NULL};
+    int constraint_var = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &constraint_var)) {
+        return NULL;
+    }
+
+    check_null;
+
+    self->model->v_assume(constraint_var);
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(v_unassume_doc,
+    "void v_unassume(int var)\n"
+);
+
+static PyObject *v_unassume(native_model *self, PyObject *args, PyObject *kwds) {
+    char *kwlist[] = {(char*)"var", NULL};
+    int constraint_var = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", kwlist, &constraint_var)) {
+        return NULL;
+    }
+
+    check_null;
+
+    self->model->v_unassume(constraint_var);
+    Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(solve_doc,
     "lbool solve()\n"
 );
@@ -255,6 +291,8 @@ static PyMethodDef model_methods[] = {
     {"v_nor", (PyCFunction)v_nor, METH_VARARGS | METH_KEYWORDS, v_nor_doc},
     {"v_xor", (PyCFunction)v_xor, METH_VARARGS | METH_KEYWORDS, v_xor_doc},
     {"v_assert", (PyCFunction)v_assert, METH_VARARGS | METH_KEYWORDS, v_assert_doc},
+    {"v_assume", (PyCFunction)v_assume, METH_VARARGS | METH_KEYWORDS, v_assume_doc},
+    {"v_unassume", (PyCFunction)v_unassume, METH_VARARGS | METH_KEYWORDS, v_unassume_doc},
     {"solve", (PyCFunction)solve, METH_VARARGS, solve_doc},
     {"val", (PyCFunction)val, METH_VARARGS | METH_KEYWORDS, val_doc},
     {NULL, NULL, 0, NULL},
