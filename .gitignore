@@ -6,6 +6,7 @@ __pycache__/
 
 # C extensions
 *.so
+*.o
 
 # Distribution / packaging
 .Python
@@ -71,3 +72,6 @@ Session.vim
 
 # mypy
 .mypy_cache/
+
+perf.data*
+gmon.out

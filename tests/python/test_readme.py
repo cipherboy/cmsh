@@ -13,15 +13,15 @@ def test_readme_contents():
     m.add_assert(stmt)
 
     # Printing, Solving
-    assert int(a) == 2
-    assert int(b) == 3
+    assert int(a) == 1
+    assert int(b) == 2
     assert m.solve() == True
 
     assert bool(a) == False
     assert bool(b) == False
 
     # Type Coercion
-    assert int(a) == 2
+    assert int(a) == 1
 
     # Negations
     c = m.var()

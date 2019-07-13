@@ -3,7 +3,7 @@ This module contains the main Module class.
 """
 
 
-from pycryptosat import Solver
+from ._native import model as native_model
 
 from .var import Variable
 from .vec import Vector
@@ -39,34 +39,14 @@ class Model:
     >>> assert bool(a) and bool(b)
     """
 
-    variables = 0
-    constraints = None
-
-    clauses = None
-    assumptions = None
-
     solver = None
     sat = None
-    solution = None
-
-    true = None
-    false = None
 
     def __init__(self):
         """
         Constructor for Model. Must be called, but no configuration currently.
         """
-        self.variables = 0
-        self.constraints = {}
-
-        self.clauses = set()
-        self.assumptions = set()
-
-        self.solver = Solver()
-
-        self.true = self.var()
-        self.false = self.neg_var(self.true)
-        self.add_clause([self.true])
+        self.solver = native_model()
 
     def var(self):
         """
@@ -84,10 +64,7 @@ class Model:
         Returns:
             Variable: the newly created variable.
         """
-        self.variables += 1
-        new_variable = Variable(self, identifier=self.variables)
-
-        return new_variable
+        return Variable(self, self.solver.var())
 
     def to_vec(self, other, width=None):
         """
@@ -198,66 +175,35 @@ class Model:
         """
         vtype = type(var)
         if vtype == int:
-            if var > self.variables:
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
-                raise ValueError(msg)
             return Variable(self, identifier=-var)
         if vtype == Variable:
             return Variable(self, identifier=-var.identifier)
 
         raise TypeError("Unknown type to negate: %s" % type(var))
 
-    def _build_transform_(self, operator, left, right):
-        """
-        Build the canonical form of a transformation (boolean expression)
-        from operators and left/right halves. Only to be called on Variables
-        to cache the result (enabling consistency).
+    def add_constraint(self, left, op, right):
+        assert isinstance(left, int)
+        assert isinstance(right, int)
 
-        Args:
-            operator (str): name of the operator (e.g., and, or, etc.).
-            left (Variable): left operand.
-            right (Variable): right operand.
+        if abs(left) > self.solver.num_constraint_vars():
+            msg = "Passed left identifier %d exceeds number of vars: %d" % (left, self.solver.num_constraint_vars())
+            raise ValueError(msg)
+        if abs(right) > self.solver.num_constraint_vars():
+            msg = "Passed right identifier %d exceeds number of vars: %d" % (right, self.solver.num_constraint_vars())
+            raise ValueError(msg)
 
-        Returns:
-            str: canonical representation of operator applied to the operands.
-        """
-        if left.identifier < right.identifier:
-            return (operator, left.identifier, right.identifier)
-        return (operator, right.identifier, left.identifier)
+        if op == 'and':
+            return Variable(self, self.solver.v_and(left, right))
+        elif op == 'nand':
+            return Variable(self, self.solver.v_nand(left, right))
+        elif op == 'or':
+            return Variable(self, self.solver.v_or(left, right))
+        elif op == 'nor':
+            return Variable(self, self.solver.v_nor(left, right))
+        elif op == 'xor':
+            return Variable(self, self.solver.v_xor(left, right))
 
-    def _has_constraint_(self, transform):
-        """
-        Checks if this model has seen the specified constraint before.
-
-        Args:
-            transform (str): built from __build_transform.
-
-        Returns:
-            bool: whether or not the specified transformation has been seen.
-        """
-        return transform in self.constraints
-
-    def _add_constraint_(self, transform, result):
-        """
-        Adds a constraint and its result to the model.
-
-        Args:
-            transform (str): built from __build_transform.
-            result (Variable): result of the constraints.
-        """
-        self.constraints[transform] = result
-
-    def _get_constraint_(self, transform):
-        """
-        Gets the result of a constraint when already present.
-
-        Args:
-            transform (str): built from __build_transform
-
-        Returns:
-            Variable: result of the constraint.
-        """
-        return self.constraints[transform]
+        raise ValueError("Unknown operator: %s" % op)
 
     def add_assert(self, var):
         """
@@ -269,7 +215,7 @@ class Model:
         """
         if isinstance(var, bool):
             raise ValueError("Expected Variable or int; got bool: %s" % var)
-        self.add_clause([var])
+        self.solver.v_assert(var)
 
     def add_assume(self, var):
         """
@@ -288,15 +234,15 @@ class Model:
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
         if vtype == int:
-            if var > self.variables:
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
+            if abs(var) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
                 raise ValueError(msg)
-            self.assumptions.add(var)
-            tmp_var = Variable(self, identifier=var)
-            self.add_assert(tmp_var | -tmp_var)
+            self.solver.v_assume(var)
         else:
-            self.assumptions.add(var.identifier)
-            self.add_assert(var | -var)
+            if abs(var.identifier) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+                raise ValueError(msg)
+            self.solver.v_assume(var.identifier)
 
     def remove_assume(self, var):
         """
@@ -309,9 +255,10 @@ class Model:
         if vtype == bool:
             raise ValueError("Expected Variable or int; got bool: %s" % var)
         if vtype == int:
-            self.assumptions.remove(var)
+            self.solver.v_unassume(var)
         else:
-            self.assumptions.remove(var.identifier)
+            self.solver.v_unassume(var.identifier)
+
 
     def __to_ident__(self, var):
         vtype = type(var)
@@ -319,46 +266,14 @@ class Model:
             msg = "Cannot pass bool as an identifier into CNF clause"
             raise ValueError(msg)
         if vtype == int:
-            if var > self.variables:
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.variables)
+            if abs(var) > self.solver.num_constraint_vars():
+                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
                 raise ValueError(msg)
             return var
+        if abs(var.identifier) > self.solver.num_constraint_vars():
+            msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+            raise ValueError(msg)
         return var.identifier
-
-    def add_clause(self, clause):
-        """
-        Adds a clause to the CNF. A clause is a list of variables joined by OR
-        gates. Each clause in the CNF is joined by AND gates. It is suggested
-        not to call add_clause(...) directly, but instead call add_assert for
-        a clause with a single variable. Note that operations on Variables
-        automatically add clauses as necessary.
-
-        Args:
-            clause (iterable of bool, int, or Variable): clause to add to the
-            CNF.
-        """
-
-        resolved_clause = tuple(map(self.__to_ident__, clause))
-        self.clauses.add(resolved_clause)
-
-    def add_clauses(self, clauses):
-        """
-        Adds list of clauses to the CNF. A clause is a list of variables
-        joined by OR gates. Each clause in the CNF is joined by AND gates. It
-        is suggested not to call add_clauses(...) directly, but instead call
-        add_assert for a clause with a single variable, or directly use
-        operations on Variables
-
-        Args:
-            clauses (iterable of iterables of bool, int, or Variable): set of
-            clauses to add to the CNF.
-        """
-
-        resolved_clauses = [
-            tuple(map(self.__to_ident__, clause))
-            for clause in clauses
-        ]
-        self.clauses.update(resolved_clauses)
 
     def negate_solution(self, variables):
         """
@@ -394,11 +309,7 @@ class Model:
         Returns:
             bool: whether or not the model is satisfiable.
         """
-        if self.clauses:
-            self.solver.add_clauses(self.clauses, max_var=self.variables)
-            self.clauses = set()
-
-        self.sat, self.solution = self.solver.solve(assumptions=self.assumptions)
+        self.sat = self.solver.solve()
         return self.sat
 
     def _get_value_(self, identifier):
@@ -413,10 +324,5 @@ class Model:
             bool: whether or not the variable is True, accounting for negation
             of the identifier
         """
-        if not self.sat:
-            return None
-
-        if identifier >= 0:
-            return self.solution[identifier]
-
-        return not self.solution[abs(identifier)]
+        if self.sat:
+            return self.solver.val(int(identifier))
