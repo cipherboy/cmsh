@@ -179,31 +179,45 @@ class Model:
         if vtype == Variable:
             return Variable(self, identifier=-var.identifier)
 
-        raise TypeError("Unknown type to negate: %s" % type(var))
+        raise TypeError(f"Unknown type to negate: {type(var)}")
 
-    def add_constraint(self, left, op, right):
+    def add_constraint(self, left, operator, right):
+        """
+        Add a constraint to the model.
+
+        Args:
+            left (int): the left variable identifier for the gate
+            operator (str): the gate to add
+            right (int): the right variable identifier for the gate
+
+        Returns:
+            Variable: the result of the gate
+        """
         assert isinstance(left, int)
+        assert isinstance(operator, str)
         assert isinstance(right, int)
 
         if abs(left) > self.solver.num_constraint_vars():
-            msg = "Passed left identifier %d exceeds number of vars: %d" % (left, self.solver.num_constraint_vars())
+            msg = f"Passed left identifier {left} exceeds number of vars: "
+            msg += f"{self.solver.num_constraint_vars()}"
             raise ValueError(msg)
         if abs(right) > self.solver.num_constraint_vars():
-            msg = "Passed right identifier %d exceeds number of vars: %d" % (right, self.solver.num_constraint_vars())
+            msg = f"Passed right identifier {right} exceeds number of vars: "
+            msg += f"{self.solver.num_constraint_vars()}"
             raise ValueError(msg)
 
-        if op == 'and':
+        if operator == 'and':
             return Variable(self, self.solver.v_and(left, right))
-        elif op == 'nand':
+        if operator == 'nand':
             return Variable(self, self.solver.v_nand(left, right))
-        elif op == 'or':
+        if operator == 'or':
             return Variable(self, self.solver.v_or(left, right))
-        elif op == 'nor':
+        if operator == 'nor':
             return Variable(self, self.solver.v_nor(left, right))
-        elif op == 'xor':
+        if operator == 'xor':
             return Variable(self, self.solver.v_xor(left, right))
 
-        raise ValueError("Unknown operator: %s" % op)
+        raise ValueError(f"Unknown operator: {operator}")
 
     def add_assert(self, var):
         """
@@ -214,7 +228,7 @@ class Model:
             var (int or Variable): variable or its identifier to assert.
         """
         if isinstance(var, bool):
-            raise ValueError("Expected Variable or int; got bool: %s" % var)
+            raise ValueError(f"Expected Variable or int; got bool: {var}")
         self.solver.v_assert(var)
 
     def add_assume(self, var):
@@ -232,15 +246,17 @@ class Model:
         """
         vtype = type(var)
         if vtype == bool:
-            raise ValueError("Expected Variable or int; got bool: %s" % var)
+            raise ValueError(f"Expected Variable or int; got bool: {var}")
         if vtype == int:
             if abs(var) > self.solver.num_constraint_vars():
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
+                msg = f"Passed identifier {var} exceeds number of vars: "
+                msg += f"{self.solver.num_constraint_vars()}"
                 raise ValueError(msg)
             self.solver.v_assume(var)
         else:
             if abs(var.identifier) > self.solver.num_constraint_vars():
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+                msg = f"Passed identifier {var.identifier} exceeds number of vars: "
+                msg += f"{self.solver.num_constraint_vars()}"
                 raise ValueError(msg)
             self.solver.v_assume(var.identifier)
 
@@ -253,7 +269,7 @@ class Model:
         """
         vtype = type(var)
         if vtype == bool:
-            raise ValueError("Expected Variable or int; got bool: %s" % var)
+            raise ValueError(f"Expected Variable or int; got bool: {var}")
         if vtype == int:
             self.solver.v_unassume(var)
         else:
@@ -267,11 +283,13 @@ class Model:
             raise ValueError(msg)
         if vtype == int:
             if abs(var) > self.solver.num_constraint_vars():
-                msg = "Passed identifier %d exceeds number of vars: %d" % (var, self.solver.num_constraint_vars())
+                msg = f"Passed identifier {var} exceeds number of vars: "
+                msg += f"{self.solver.num_constraint_vars()}"
                 raise ValueError(msg)
             return var
         if abs(var.identifier) > self.solver.num_constraint_vars():
-            msg = "Passed identifier %d exceeds number of vars: %d" % (var.identifier, self.solver.num_constraint_vars())
+            msg = f"Passed identifier {var.identifier} exceeds number of vars: "
+            msg += f"{self.solver.num_constraint_vars()}"
             raise ValueError(msg)
         return var.identifier
 
@@ -326,3 +344,5 @@ class Model:
         """
         if self.sat:
             return self.solver.val(int(identifier))
+
+        return None
