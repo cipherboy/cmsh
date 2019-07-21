@@ -5,7 +5,25 @@ High level Python interfaces over `pycryptosat` from [Mate Soos's](https://githu
 
 ## Dependencies
 
-The only dependency is `pycryptosat`.
+The only dependencies are CryptoMiniSat, Python, and a working C++ compiler.
+
+## Building
+
+To build `cmsh`, first build CryptoMiniSat with Gaussian Elimination support:
+
+	git clone https://github.com/msoos/cryptominisat
+	cd cryptominisat/build && cmake -DUSE_GAUSS=ON ..
+	make -j5
+
+Then, build `cmsh`:
+
+	cd cmsh/
+	CMS=/path/to/cryptominisat/build make clean all check
+
+To install:
+
+	cd cmsh/build/
+	pip3 install --user -e .
 
 ## Usage
 
