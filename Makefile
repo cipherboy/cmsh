@@ -17,12 +17,12 @@ GENERALFLAGS=-pthread -fwrapv -m64 -pipe -fexceptions -DDYNAMIC_ANNOTATIONS_ENAB
 SECURITYFLAGS=-Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -grecord-gcc-switches -fcf-protection
 COMPILEFLAGS=${CPPFLAGS} ${CXXFLAGS} ${GENERALFLAGS} ${SECURITYFLAGS}
 
+# We need optimizations for -D_FORTIFY_SOURCE; always add some.
 ifeq ($(DEBUG),1)
 COMPILEFLAGS+=${DEBUGFLAGS}
 else
 COMPILEFLAGS+=${OPTIMIZEFLAGS}
 endif
-
 
 # Library linking flags
 CMSFLAGS=-I$(CMS)/cmsat5-src -L$(CMS)/lib -lcryptominisat5 -Wl,-rpath,$(CMS)/lib
@@ -30,6 +30,8 @@ CMSHFLAGS=$(CMSFLAGS) -I$(CURDIR)/build/include -L$(CURDIR)/build/lib -lcmsh -Wl
 PYTHONFLAGS=-I$(PYINCLUDE) -lpython$(PYLDVERSION)
 LINKERFLAGS=${LDFLAGS} -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -g
 
+
+# Build targets
 all: cmsh check-native
 .PHONY : all
 
@@ -81,3 +83,6 @@ clean:
 	rm -rf build/
 	mkdir -p build/
 	touch build/.gitkeep
+
+lint:
+	pylint cmsh
