@@ -293,7 +293,7 @@ namespace cmsh {
             // and different timeouts / conflict counts if you desire.
             void config_timeout(double max_time);
 
-            // Configure the maxinimum number of conflicts until the solver
+            // Configure the maximum number of conflicts until the solver
             // should exit on any given call to SATSolver->solve(). See note
             // on config_timeout above.
             void config_conflicts(int64_t max_conflicts);
@@ -334,7 +334,7 @@ namespace cmsh {
             // A negative assumption can be passed by making var negative.
             void v_assume(int var);
 
-            // Remove an assumption about the state of a variable to the
+            // Remove all assumptions about the state of a variable from the
             // model. This removes both positive and negative assumptions
             // about the variable.
             void v_unassume(int var);

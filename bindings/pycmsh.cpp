@@ -57,8 +57,17 @@ typedef struct {
     model_t *model;
 } native_model;
 
+
 PyDoc_STRVAR(config_timeout_doc,
-    "void config_timeout(double max_time)\n"
+    "void config_timeout(double max_time)\n\n"
+    "Set the maximum time in seconds that the solver should run for, for\n"
+    "any given call to SATSolver->solve(). Note that you can call\n"
+    "SATSolver->solve() multiple times with different assumptions and\n"
+    "different timeouts/conflict counts if you desire.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "max_time : float\n"
+    "    maximum time limit to solve for\n"
 );
 
 static PyObject *config_timeout(native_model *self, PyObject *args, PyObject *kwds) {
@@ -75,8 +84,16 @@ static PyObject *config_timeout(native_model *self, PyObject *args, PyObject *kw
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(config_conflicts_doc,
-    "void config_conflicts(int64_t max_conflicts)\n"
+    "void config_conflicts(int64_t max_conflicts)\n\n"
+    "Configure the maximum number of conflicts until the solver should\n"
+    "exit on any given call to SATSolver->solve(). See note on\n"
+    "config_timeout(...) as well.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "max_conflicts : int\n"
+    "    maximum number of conflicts to solve for\n"
 );
 
 static PyObject *config_conflicts(native_model *self, PyObject *args, PyObject *kwds) {
@@ -93,16 +110,40 @@ static PyObject *config_conflicts(native_model *self, PyObject *args, PyObject *
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(var_doc,
-    "int var()\n"
+    "int var()\n\n"
+    "Create a new constraint variable, returning its value. This should be\n"
+    "used with all calls below; the value from cnf(...) should never be\n"
+    "ysed unless parsing the generated CNF and correlating the variables\n"
+    "there with constraint variables. However, cmsh takes care of this for\n"
+    "the caller.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    the next available constraint variable identifier\n"
 );
 
 static PyObject *var(native_model *self, PyObject *) {
     get_int_value(var);
 }
 
+
 PyDoc_STRVAR(cnf_doc,
-    "int cnf(int var)\n"
+    "int cnf(int var)\n\n"
+    "Inquire as to the value of the cnf variable for the associated\n"
+    "constraint variable. Returns 0 when the constraint variable hasn't\n"
+    "yet been assigned a CNF counterpart. Note that this value shouldn't be\n"
+    "passed to any other methods in cmsh's API unless otherwise noted.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "var : int\n"
+    "    The identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The (non-zero) identifier of the corresponding CNF variable, else\n"
+    "    zero if one is not yet assigned.\n"
 );
 
 static PyObject *cnf(native_model *self, PyObject *args, PyObject *kwds) {
@@ -119,48 +160,133 @@ static PyObject *cnf(native_model *self, PyObject *args, PyObject *kwds) {
     return PyLong_FromLong(cnf_variable);
 }
 
+
 PyDoc_STRVAR(v_and_doc,
-    "int v_and(int left, int right)\n"
+    "int v_and(int left, int right)\n\n"
+    "Create a new AND gate over the two constraint variables and add it\n"
+    "to the model. The result is another constraint variable which\n"
+    "represents the value of the gate, and can be used in other gates.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "left : int\n"
+    "    the identifier of a constraint variable\n"
+    "right : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The identifier of the constraint variable associated with the value\n"
+    "    of this gate.\n"
 );
 
 static PyObject *v_and(native_model *self, PyObject *args, PyObject *kwds) {
     v_op(v_and)
 }
 
+
 PyDoc_STRVAR(v_nand_doc,
-    "int v_nand(int left, int right)\n"
+    "int v_nand(int left, int right)\n\n"
+    "Create a new NAND gate over the two constraint variables and add it\n"
+    "to the model. The result is another constraint variable which\n"
+    "represents the value of the gate, and can be used in other gates.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "left : int\n"
+    "    the identifier of a constraint variable\n"
+    "right : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The identifier of the constraint variable associated with the value\n"
+    "    of this gate.\n"
 );
 
 static PyObject *v_nand(native_model *self, PyObject *args, PyObject *kwds) {
     v_op(v_nand)
 }
 
+
 PyDoc_STRVAR(v_or_doc,
-    "int v_or(int left, int right)\n"
+    "int v_or(int left, int right)\n\n"
+    "Create a new OR gate over the two constraint variables and add it\n"
+    "to the model. The result is another constraint variable which\n"
+    "represents the value of the gate, and can be used in other gates.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "left : int\n"
+    "    the identifier of a constraint variable\n"
+    "right : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The identifier of the constraint variable associated with the value\n"
+    "    of this gate.\n"
 );
 
 static PyObject *v_or(native_model *self, PyObject *args, PyObject *kwds) {
     v_op(v_or)
 }
 
+
 PyDoc_STRVAR(v_nor_doc,
-    "int v_nor(int left, int right)\n"
+    "int v_nor(int left, int right)\n\n"
+    "Create a new NOR gate over the two constraint variables and add it\n"
+    "to the model. The result is another constraint variable which\n"
+    "represents the value of the gate, and can be used in other gates.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "left : int\n"
+    "    the identifier of a constraint variable\n"
+    "right : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The identifier of the constraint variable associated with the value\n"
+    "    of this gate.\n"
 );
 
 static PyObject *v_nor(native_model *self, PyObject *args, PyObject *kwds) {
     v_op(v_nor)
 }
 
+
 PyDoc_STRVAR(v_xor_doc,
-    "int v_xor(int left, int right)\n"
+    "int v_xor(int left, int right)\n\n"
+    "Create a new XOR gate over the two constraint variables and add it\n"
+    "to the model. The result is another constraint variable which\n"
+    "represents the value of the gate, and can be used in other gates.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "left : int\n"
+    "    the identifier of a constraint variable\n"
+    "right : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The identifier of the constraint variable associated with the value\n"
+    "    of this gate.\n"
 );
 
 static PyObject *v_xor(native_model *self, PyObject *args, PyObject *kwds) {
     v_op(v_xor)
 }
 
+
 PyDoc_STRVAR(v_assert_doc,
-    "void v_assert(int var)\n"
+    "void v_assert(int var)\n\n"
+    "Assert that a single constraint variable is true. A negative variable\n"
+    "identifier can be passed here, in which case the negation of the\n"
+    "variable is asserted to be true, i.e., the variable is asserted to be\n"
+    "false. Note that assertions cannot be removed once added, unlike\n"
+    "assumptions, which can be with assume(...)/unassume(...).\n\n"
+    "Parameters\n"
+    "----------\n"
+    "var : int\n"
+    "    the identifier of a constraint variable\n"
 );
 
 static PyObject *v_assert(native_model *self, PyObject *args, PyObject *kwds) {
@@ -177,8 +303,15 @@ static PyObject *v_assert(native_model *self, PyObject *args, PyObject *kwds) {
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(v_assume_doc,
-    "void v_assume(int var)\n"
+    "void v_assume(int var)\n\n"
+    "Add an assumption about the state of a variable to the model. A\n"
+    "negative assumption can be passed by making the identifier negative.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "var : int\n"
+    "    the identifier of a constraint variable\n"
 );
 
 static PyObject *v_assume(native_model *self, PyObject *args, PyObject *kwds) {
@@ -195,8 +328,16 @@ static PyObject *v_assume(native_model *self, PyObject *args, PyObject *kwds) {
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(v_unassume_doc,
-    "void v_unassume(int var)\n"
+    "void v_unassume(int var)\n\n"
+    "Remove all assumptions about the state of a variable from the model.\n"
+    "This removes both positive and negative assumptions; i.e., remove both\n"
+    "assume(var) and assume(-var) at the same time.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "var : int\n"
+    "    the identifier of a constraint variable\n"
 );
 
 static PyObject *v_unassume(native_model *self, PyObject *args, PyObject *kwds) {
@@ -213,8 +354,17 @@ static PyObject *v_unassume(native_model *self, PyObject *args, PyObject *kwds) 
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(solve_doc,
-    "lbool solve()\n"
+    "lbool solve()\n\n"
+    "Solve the model under the specified set of assumptions. The result is\n"
+    "either True (if SAT), False (if UNSAT) or None (if neither SAT nor\n"
+    "UNSAT have been reached yet, usually due to reaching a timeout or\n"
+    "conflict limit.\n\n"
+    "Returns\n"
+    "-------\n"
+    "bool\n"
+    "    Whether or not the model is satisfiable\n"
 );
 
 static PyObject *solve(native_model *self, PyObject *args) {
@@ -232,8 +382,20 @@ static PyObject *solve(native_model *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(val_doc,
-    "bool val(int var)\n"
+    "bool val(int var)\n\n"
+    "Get the value of a constraint variable after solve returns l_True. If\n"
+    "solve returns anything other than l_True and val(...) is called, it\n"
+    "will assert.\n\n"
+    "Parameters\n"
+    "----------\n"
+    "var : int\n"
+    "    the identifier of a constraint variable\n\n"
+    "Returns\n"
+    "-------\n"
+    "bool\n"
+    "    The value of the constraint variable\n"
 );
 
 static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
@@ -253,32 +415,56 @@ static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
     Py_RETURN_FALSE;
 }
 
+
 PyDoc_STRVAR(num_constraint_vars_doc,
-    "int num_constraint_vars()\n"
+    "int num_constraint_vars()\n\n"
+    "Query the number of constraint variables in this model instance.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The number of constraint variables in the model\n"
 );
 
 static PyObject *num_constraint_vars(native_model *self, PyObject *) {
     get_int_value(num_constraint_vars);
 }
 
+
 PyDoc_STRVAR(num_constraints_doc,
-    "int num_constraints()\n"
+    "int num_constraints()\n\n"
+    "Query the number of constraints in this model instance.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The number of constraints in the model\n"
 );
 
 static PyObject *num_constraints(native_model *self, PyObject *) {
     get_int_value(num_constraints);
 }
 
+
 PyDoc_STRVAR(num_cnf_vars_doc,
-    "int num_cnf_vars()\n"
+    "int num_cnf_vars()\n\n"
+    "Query the number of CNF variables in this model instance.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The number of CNF variables in the model\n"
 );
 
 static PyObject *num_cnf_vars(native_model *self, PyObject *) {
     get_int_value(num_cnf_vars);
 }
 
+
 PyDoc_STRVAR(num_cnf_clauses_doc,
-    "int num_cnf_clauses()\n"
+    "int num_cnf_clauses()\n\n"
+    "Query the number of CNF clauses in this model instance.\n\n"
+    "Returns\n"
+    "-------\n"
+    "int\n"
+    "    The number of CNF clauses in the model\n"
 );
 
 static PyObject *num_cnf_clauses(native_model *self, PyObject *) {
