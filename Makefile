@@ -67,12 +67,12 @@ check: check-native
 	build/sudoku
 	PYTHONPATH=build $(PYTHON) -m pytest
 
-check-native: native build/basic_api build/sudoku
+check-native: build/basic_api build/sudoku
 
-build/basic_api: tests/native/basic_api.cpp
+build/basic_api: native tests/native/basic_api.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api
 
-build/sudoku: tests/native/sudoku.cpp
+build/sudoku: native tests/native/sudoku.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/sudoku.cpp -o build/sudoku
 
 distclean: clean
