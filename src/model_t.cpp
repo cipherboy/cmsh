@@ -191,12 +191,14 @@ int model_t::v_xor(int left, int right) {
 void model_t::v_assert(int var) {
     int cnf_var = cnf_from_constraint(var);
     asserts.insert(cnf_var);
+    add_reachable(var);
 }
 
 void model_t::v_assert(const vector<int> vars) {
     for (int var : vars) {
         int cnf_var = cnf_from_constraint(var);
         asserts.insert(cnf_var);
+        add_reachable(var);
     }
 }
 
@@ -248,15 +250,12 @@ void model_t::add_clause(int var_1, int var_2, int var_3) {
     clause_count += 1;
 }
 
-void model_t::add_reachable() {
+void model_t::add_reachable(int constraint_from) {
     declare_visited;
     set<int> queue;
     vector<constraint_t *> to_add;
 
-    for (int cnf_assert : asserts) {
-        int var_constraint = cnf_constraint_map[abs(cnf_assert)];
-        queue.insert(abs(var_constraint));
-    }
+    queue.insert(abs(constraint_from));
 
     while (!queue.empty()) {
         int var = queue.extract(queue.begin()).value();
@@ -298,12 +297,12 @@ void model_t::extend_solution() {
     assert(cnf_solution.size() == (size_t)cnf_var);
 
     for (int c_var = 1; c_var < cnf_var; c_var++) {
-        if (!cnf_constraint_map.contains(c_var)) {
-            assert(false);
-        }
+        assert(cnf_constraint_map.contains(c_var));
 
         int var = cnf_constraint_map[c_var];
-        solution[var] = to_bool(cnf_solution[c_var]);
+        if (!solution.contains(var)) {
+            solution[var] = to_bool(cnf_solution[c_var]);
+        }
 
         if (operand_constraint_map.contains(var) && !operand_constraint_map[var].empty()) {
             queue.insert(var);
@@ -354,9 +353,6 @@ void model_t::extend_solution() {
 }
 
 lbool model_t::solve(bool only_indep_solution) {
-    // Add all clauses reachable from an assert or an asusmption.
-    add_reachable();
-
     // Add all asserts.
     for (int cnf_assert : asserts) {
         add_clause(cnf_assert);
@@ -366,6 +362,9 @@ lbool model_t::solve(bool only_indep_solution) {
     vector<Lit> lit_assumptions;
     for (int cnf_assume : assumptions) {
         lit_assumptions.push_back(to_lit(cnf_assume));
+
+        int constraint_var = cnf_constraint_map[abs(cnf_assume)];
+        add_reachable(constraint_var);
     }
 
     // Solve the model.
@@ -402,11 +401,19 @@ inline bool model_t::ubv(bool value, bool negated) {
 bool model_t::val(int constraint_var) {
     if (solved == l_True) {
         if (constraint_var > 0) {
-            assert(solution.contains(constraint_var));
+            if (!solution.contains(constraint_var)) {
+                extend_solution();
+                assert(solution.contains(constraint_var));
+            }
+
             return solution[constraint_var];
         }
 
-        assert(solution.contains(abs(constraint_var)));
+
+        if (!solution.contains(abs(constraint_var))) {
+            extend_solution();
+            assert(solution.contains(abs(constraint_var)));
+        }
         return !solution[abs(constraint_var)];
     }
     assert(false);

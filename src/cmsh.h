@@ -232,7 +232,7 @@ namespace cmsh {
             // A helper method of solve(): add all reachable constraints
             // reachable from the assumptions or assertions to the SATSolver
             // model.
-            void add_reachable();
+            void add_reachable(int constraint_from);
 
             // Extend the solution from the SATSolver to include constraints
             // which are fully determined by the solution but not added to the
