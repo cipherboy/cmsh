@@ -471,6 +471,23 @@ static PyObject *num_cnf_clauses(native_model *self, PyObject *) {
     get_int_value(num_cnf_clauses);
 }
 
+
+PyDoc_STRVAR(delete_model_doc,
+    "void delete_model()\n\n"
+    "Delete the underlying model instance, freeing memory. This should only\n"
+    "be used when waiting for garbage collection on large models isn't\n"
+    "possible.\n"
+);
+
+static PyObject *delete_model(native_model *self, PyObject *) {
+    check_null
+
+    delete self->model;
+    self->model = NULL;
+    Py_RETURN_NONE;
+}
+
+
 static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
     char *kwlist[] = {(char *)"threads", (char *)"gauss", NULL};
     int threads = 1;
@@ -497,7 +514,7 @@ static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
 }
 
 static void model_dealloc(native_model *ptr) {
-    if (ptr != NULL) {
+    if (ptr != NULL && ptr->model != NULL) {
         delete ptr->model;
     }
 }
@@ -521,6 +538,7 @@ static PyMethodDef model_methods[] = {
     {"num_constraints", (PyCFunction)num_constraints, METH_VARARGS, num_constraints_doc},
     {"num_cnf_vars", (PyCFunction)num_cnf_vars, METH_VARARGS, num_cnf_vars_doc},
     {"num_cnf_clauses", (PyCFunction)num_cnf_clauses, METH_VARARGS, num_cnf_clauses_doc},
+    {"delete_model", (PyCFunction)delete_model, METH_VARARGS, delete_model_doc},
     {NULL, NULL, 0, NULL},
 };
 

@@ -346,3 +346,7 @@ class Model:
             return self.solver.val(int(identifier))
 
         return None
+
+    def cleanup(self):
+        self.solver.delete_model()
+        self.solver = None
