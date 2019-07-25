@@ -113,6 +113,12 @@ def sudoku_solve(known, solution):
     model.add_assert(consts)
     assert model.solve()
 
+    left = grid['pos'][(0, 0)]
+    right = grid['pos'][(0, 0)]
+    value = left | right
+
+    output = int(value)
+
     negated = False
     for x in range(0, width):
         row = []
