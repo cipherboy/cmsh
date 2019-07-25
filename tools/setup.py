@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(name='cmsh',
-      version='0.3',
-      description="High level interface over Mate Soos's pycryptosat from CryptoMiniSat",
+      version='0.4',
+      description="High level interface over Mate Soos's CryptoMiniSat",
       url='http://github.com/cipherboy/cmsh',
       author='Alexander Scheel',
       author_email='alexander.m.scheel@gmail.com',
-      license='GPLv2',
+      license='GPLv3',
       packages=['cmsh'],
       install_requires=[],
-      zip_safe=True)
+      zip_safe=False)
