@@ -408,11 +408,15 @@ static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
 
     check_null;
 
-    if (self->model->val(constraint_var)) {
-        Py_RETURN_TRUE;
-    }
+    lbool result = self->model->lval(constraint_var);
 
-    Py_RETURN_FALSE;
+    if (result == l_True) {
+        Py_RETURN_TRUE;
+    } else if (result == l_False) {
+        Py_RETURN_FALSE;
+    } else {
+        Py_RETURN_NONE;
+    }
 }
 
 

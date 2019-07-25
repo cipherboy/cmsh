@@ -202,6 +202,9 @@ namespace cmsh {
             // Helper to find an existing constraint_t if it already exists.
             int find_constraint(int left, op_t op, int right);
 
+            // Helper to update an existing solution when adding a new gate.
+            void update_solution(constraint_t *con);
+
             // Helper to create a new constraint_t; not exposed to callers.
             int v_op(int left, op_t op, int right);
 
@@ -219,6 +222,10 @@ namespace cmsh {
             // negating it. This assumes lbool is either l_True or l_False,
             // asserting on anything else (l_Undef for instance).
             static inline bool to_bool(lbool var, bool negate=false);
+
+            // Convert the boolean into a boolean-like lbool. Opposite of
+            // to_bool above, but without the optional negation parameter.
+            static inline lbool to_lbool(bool var);
 
             // ubv is an internal function which stands for "update boolean
             // value" and is used to update a boolean value to match the sign
@@ -344,8 +351,18 @@ namespace cmsh {
 
             // Get the value of a constraint variable after solve returns
             // l_True. If solve returns anything other than l_True, and
-            // val(...) is called, it will assert.
+            // val(...) is called, it will assert. This will also assert
+            // when the constraint variable isn't found in the model, e.g.,
+            // it depends on values which weren't added to the underlying
+            // CNF because they weren't reachable from a v_assert(...) or
+            // v_assume(...) call.
             bool val(int var);
+
+            // Get the value of a constraint variable after solve returns
+            // l_True. This is the friendly version of val(...) which returns
+            // an lbool -- in cases where val(...) would assert, lval(...)
+            // will return l_Undef.
+            lbool lval(int var);
 
             // Functions to get statistics about the size of the constraint
             // model and the underlying CNF.

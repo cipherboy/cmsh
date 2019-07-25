@@ -146,6 +146,23 @@ int model_t::find_constraint(int left, op_t op, int right) {
     return 0;
 }
 
+void model_t::update_solution(constraint_t *con) {
+    if (solved != l_True) {
+        return;
+    }
+
+    if (!solution.contains(abs(con->left)) ||
+            !solution.contains(abs(con->right))) {
+        return;
+    }
+
+    bool left_value = solution[abs(con->left)];
+    bool right_value = solution[abs(con->right)];
+    bool con_value = con->eval(ubv(left_value, con->left < 0),
+                               ubv(right_value, con->right < 0));
+    solution[con->value] = con_value;
+}
+
 int model_t::v_op(int left, op_t op, int right) {
     assert(abs(left) < constraint_var);
     assert(abs(right) < constraint_var);
@@ -165,6 +182,7 @@ int model_t::v_op(int left, op_t op, int right) {
     value_constraint_map[abs(con->value)] = con;
     operand_constraint_map[abs(left)].insert(con);
     operand_constraint_map[abs(right)].insert(con);
+    update_solution(con);
     return con->value;
 }
 
@@ -379,6 +397,14 @@ lbool model_t::solve(bool only_indep_solution) {
     return solved;
 }
 
+inline lbool model_t::to_lbool(bool var) {
+    if (var) {
+        return l_True;
+    }
+
+    return l_False;
+}
+
 inline bool model_t::to_bool(lbool var, bool negate) {
     if (var == l_True) {
         if (negate) {
@@ -399,25 +425,35 @@ inline bool model_t::ubv(bool value, bool negated) {
 }
 
 bool model_t::val(int constraint_var) {
+    lbool result = lval(constraint_var);
+    if (result == l_True) {
+        return true;
+    } else if (result == l_False) {
+        return false;
+    } else {
+        assert(false);
+        return false;
+    }
+}
+
+lbool model_t::lval(int constraint_var) {
     if (solved == l_True) {
         if (constraint_var > 0) {
             if (!solution.contains(constraint_var)) {
-                extend_solution();
-                assert(solution.contains(constraint_var));
+                return l_Undef;
             }
 
-            return solution[constraint_var];
+            return to_lbool(solution[constraint_var]);
         }
 
-
-        if (!solution.contains(abs(constraint_var))) {
-            extend_solution();
-            assert(solution.contains(abs(constraint_var)));
+        if (!solution.contains(-constraint_var)) {
+            return l_Undef;
         }
-        return !solution[abs(constraint_var)];
+
+        return to_lbool(!solution[-constraint_var]);
     }
-    assert(false);
-    return false;
+
+    return l_Undef;
 }
 
 int model_t::num_constraint_vars() {
