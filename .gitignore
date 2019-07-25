@@ -75,3 +75,6 @@ Session.vim
 
 perf.data*
 gmon.out
+
+# CryptoMiniSat
+msoos_cryptominisat/
