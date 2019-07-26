@@ -41,9 +41,15 @@ all: cmsh check-native
 
 cmsh: dirs cmslibs native module
 
-dirs:
+dirs: build/include build/cmsh build/.objects
+
+build/include:
 	mkdir -p build/include
+
+build/cmsh:
 	mkdir -p build/cmsh
+
+build/.objects:
 	mkdir -p build/.objects
 
 cmslibs: dirs
@@ -71,12 +77,10 @@ module: native python/*.py tools/setup.py
 
 test: check
 
-check: check-native
+check: build/basic_api build/sudoku
 	build/basic_api
 	build/sudoku
 	PYTHONPATH=build $(PYTHON) -m pytest --ignore=msoos_cryptominisat
-
-check-native: build/basic_api build/sudoku
 
 build/basic_api: native tests/native/basic_api.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api

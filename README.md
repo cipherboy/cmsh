@@ -101,6 +101,16 @@ m.solve()
 print(a, b, c)
 ```
 
+There are also vectors!
+
+```python
+vec = m.vec(4)
+m.add_assert(vec == 3)
+m.solve()
+
+print(vec, int(vec))
+```
+
 ## Contributing
 
 Cool! \o/ Happy to have help. The core of `cmsh` is done; mostly it is the

@@ -37,3 +37,10 @@ def test_readme_contents():
     assert bool(a) == False
     assert bool(b) == False
     assert bool(c) == True
+
+    # Vectors
+    vec = m.vec(4)
+    m.add_assert(vec == 3)
+    m.solve()
+
+    print(vec, int(vec))
