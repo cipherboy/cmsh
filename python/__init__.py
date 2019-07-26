@@ -1,6 +1,7 @@
 """
-cmsh - a high level interface over @msoos's CryptoMiniSat / pycryptosat SAT
-solver and Python bindings.
+cmsh - a high level interface over @msoos's CryptoMiniSat SAT solver.
+
+See: https://github.com/cipherboy/cmsh
 """
 
 from cmsh.model import Model

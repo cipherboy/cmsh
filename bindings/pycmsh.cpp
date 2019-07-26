@@ -16,6 +16,25 @@
 
 using namespace cmsh;
 
+/*
+ * Structure:
+ *  - Macros for common method body implementations,
+ *  - native_model struct (PyObject),
+ *  - native_model methods (doc, implementation),
+ *  - init/dealloc methods,
+ *  - PyObject lookup tables, and
+ *  - pycmsh definition.
+ *
+ * To add a new method:
+ *  1. Ensure required functionality is implemented in src/,
+ *  2. Add the Python binding implementaiton under the native_model methods,
+ *  3. Add the new method to the lookup table,
+ *  4. Expose the functionality in python/,
+ *  5. Add tests for it!
+ */
+
+/* Macros */
+
 // Validate the internal state of the native_model object: self should never
 // be NULL and self->model should not be NULL when the instance is
 // initialized. If either of these don't hold, raise an exception telling the
@@ -48,6 +67,8 @@ using namespace cmsh;
     return PyLong_FromLong(result);
 
 
+/* native_model object struct */
+
 // PyObject definition for wrapping the cmsh native interface.
 typedef struct {
     // Become a PyObject struct... :)
@@ -57,6 +78,8 @@ typedef struct {
     model_t *model;
 } native_model;
 
+
+/* native_model methods */
 
 PyDoc_STRVAR(config_timeout_doc,
     "void config_timeout(double max_time)\n\n"
@@ -492,6 +515,8 @@ static PyObject *delete_model(native_model *self, PyObject *) {
 }
 
 
+/* init/dealloc */
+
 static int model_init(native_model *self, PyObject *args, PyObject *kwds) {
     char *kwlist[] = {(char *)"threads", (char *)"gauss", NULL};
     int threads = 1;
@@ -522,6 +547,9 @@ static void model_dealloc(native_model *ptr) {
         delete ptr->model;
     }
 }
+
+
+/* PyObject lookup tables */
 
 static PyMethodDef model_methods[] = {
     {"config_timeout", (PyCFunction)config_timeout, METH_VARARGS | METH_KEYWORDS, config_timeout_doc},
@@ -588,9 +616,9 @@ static PyTypeObject native_model_type = {
     &PyType_GenericNew, // tp_new
 };
 
-/*
- * pycmsh
- */
+
+/* pycmsh */
+
 static struct PyModuleDef native_def = {
     PyModuleDef_HEAD_INIT, // m_base
     "cmsh._native", // m_name
