@@ -41,7 +41,17 @@ class Vector:
         if vector and isinstance(vector, Vector):
             self.variables = vector.variables[:]
         elif vector is not None:
-            self.variables = list(vector[:])
+            self.variables = []
+            for index, item in enumerate(self.variables):
+                if isinstance(item, (bool, Variable)):
+                    self.variables.append(item)
+                elif isinstance(item, int):
+                    self.variables.append(Variable(model, item))
+                else:
+                    msg += f"Expected element at pos {index} to be a "
+                    msg += "variable-like object (Variable, bool, or int), "
+                    msg += f"but was actually of type {type(item)}"
+                    raise ValueError(msg)
 
         self.count = len(self.variables)
         self.hash_code = tuple(self.variables).__hash__()
