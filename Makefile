@@ -77,10 +77,12 @@ module: native python/*.py tools/setup.py
 
 test: check
 
-check: build/basic_api build/sudoku
+check: check-native
 	build/basic_api
 	build/sudoku
 	PYTHONPATH=build $(PYTHON) -m pytest --ignore=msoos_cryptominisat
+
+check-native: build/basic_api build/sudoku
 
 build/basic_api: native tests/native/basic_api.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api

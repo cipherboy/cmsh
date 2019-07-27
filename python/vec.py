@@ -42,7 +42,7 @@ class Vector:
             self.variables = vector.variables[:]
         elif vector is not None:
             self.variables = []
-            for index, item in enumerate(self.variables):
+            for index, item in enumerate(vector):
                 if isinstance(item, (bool, Variable)):
                     self.variables.append(item)
                 elif isinstance(item, int):
