@@ -54,7 +54,7 @@ using namespace cmsh;
 
 // A v_op method common implementation. This lets us implement it once (here)
 // and use the macro everywhere. Left and right are keyword arguments, though
-// really need not be.
+// really they need not be keywords.
 #define v_op(v_method) \
     char *kwlist[] = {(char*)"left", (char *)"right", NULL}; \
     int left = 0; \
@@ -138,7 +138,7 @@ PyDoc_STRVAR(var_doc,
     "int var()\n\n"
     "Create a new constraint variable, returning its value. This should be\n"
     "used with all calls below; the value from cnf(...) should never be\n"
-    "ysed unless parsing the generated CNF and correlating the variables\n"
+    "used unless parsing the generated CNF and correlating the variables\n"
     "there with constraint variables. However, cmsh takes care of this for\n"
     "the caller.\n\n"
     "Returns\n"

@@ -64,7 +64,7 @@ int model_t::var() {
 
 int model_t::cnf(int var) {
     // Map a constraint variable to its CNF equivalent. Returns 0 if the
-    // variable is ont found.
+    // variable is not found.
     if (cnf_constraint_map.contains(var)) {
         return cnf_constraint_map[var];
     }
@@ -147,15 +147,19 @@ int model_t::find_constraint(int left, op_t op, int right) {
 }
 
 void model_t::update_solution(constraint_t *con) {
+    // If we're not solved, return.
     if (solved != l_True) {
         return;
     }
 
+    // If either of our parameters is not solved for, return.
     if (!solution.contains(abs(con->left)) ||
             !solution.contains(abs(con->right))) {
         return;
     }
 
+    // Evaluate the value of the constraint and store it back in the solution
+    // cache.
     bool left_value = solution[abs(con->left)];
     bool right_value = solution[abs(con->right)];
     bool con_value = con->eval(ubv(left_value, con->left < 0),
@@ -177,12 +181,27 @@ int model_t::v_op(int left, op_t op, int right) {
         return found_constraint;
     }
 
+    // To add a constraint (value = left <op> right) we:
+    //
+    //  1. Initialize a new dynamic instance,
+    //  2. Store it in the global list of instances to free,
+    //  3. Store it in the global map of id->instance,
+    //  4. Store it in the operand map for left->instance and right->instance,
+    //  5. Update any existing solution.
     constraint_t *con = new constraint_t(this, left, op, right);
     constraints.push_back(con);
+
     value_constraint_map[abs(con->value)] = con;
+
     operand_constraint_map[abs(left)].insert(con);
     operand_constraint_map[abs(right)].insert(con);
+
+    // Updating the solution here lets us handle post-solve computations on
+    // available data. If we've solved for both of the operands, we can more
+    // easily compute the value of the entire constraint than our caller can.
     update_solution(con);
+
+    // Return the id of our new constraint.
     return con->value;
 }
 
@@ -269,6 +288,10 @@ void model_t::add_clause(int var_1, int var_2, int var_3) {
 }
 
 void model_t::add_reachable(int constraint_from) {
+    // add_reachable(...) lets us add only constraints that are reachable
+    // from the base model assertions to the underlying CNF. This saves us
+    // from solving for clauses we don't directly depend on.
+
     declare_visited;
     set<int> queue;
     vector<constraint_t *> to_add;
@@ -437,6 +460,9 @@ bool model_t::val(int constraint_var) {
 }
 
 lbool model_t::lval(int constraint_var) {
+    // This version avoids the assert that val(...) has. This lets callers in
+    // higher-level language bindings such as Python detect the error and
+    // throw an exception rather than asserting.
     if (solved == l_True) {
         if (constraint_var > 0) {
             if (!solution.contains(constraint_var)) {

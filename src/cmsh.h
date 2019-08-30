@@ -282,7 +282,7 @@ namespace cmsh {
             // which must be specified before adding any clauses:
             //
             //  - the number of threads to use for solving
-            //  - whether or not to use Gaussian elimnation.
+            //  - whether or not to use Gaussian elimination.
             //
             // Note that the latter requires CryptoMiniSat to be compiled with
             // support for Gaussian elimination.
