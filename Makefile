@@ -10,7 +10,7 @@ PYEXT=$(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_config_var("EX
 # Various sets of compilation flags
 DEBUGFLAGS=-Og -ggdb -DDEBUG=1 -pg
 OPTIMIZEFLAGS=-O3 -march=native -mtune=native
-DISABLEDWARNINGS=-Wno-error=cast-function-type -Wno-error=unused-parameter -Wno-error=missing-field-initializers
+DISABLEDWARNINGS=-Wno-error=cast-function-type -Wno-error=unused-parameter -Wno-error=missing-field-initializers -Wno-cast-function-type
 CLANGWARNINGS=-Wno-unused-command-line-argument -Wno-unknown-warning-option
 WARNINGFLAGS=-std=c++2a -Wall -Werror -Wextra -pedantic
 GENERALFLAGS=-pthread -fwrapv -m64 -pipe -fexceptions -DDYNAMIC_ANNOTATIONS_ENABLED=1 -fPIC -fasynchronous-unwind-tables -D_GNU_SOURCE
