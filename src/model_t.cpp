@@ -25,6 +25,7 @@ using namespace cmsh;
 #define bit(__pos) (((uint64_t) __pos) & 63ULL)
 #define is_visited(__pos) ((visited[(__pos)/64] & (1ULL << bit(__pos))) == (1ULL << bit(__pos)))
 #define visit(__pos) visited[(__pos)/64] = visited[(__pos)/64] | (1ULL << bit(__pos))
+#define cleanup_visited free(visited)
 /*#define declare_visited unordered_set<int> visited
 #define is_visited(pos) (visited.contains(pos))
 #define visit(pos) visited.insert(pos)*/
@@ -125,19 +126,19 @@ int model_t::cnf_from_constraint(int constraint_var) {
 }
 
 int model_t::find_constraint(int left, op_t op, int right) {
-    constraint_t *us = new constraint_t(NULL, left, op, right);
+    constraint_t us(NULL, left, op, right);
 
     // Check the smaller of the two operand listings for this constraint.
     // Compare not the pointer value, but the object under the pointer.
     if (operand_constraint_map[abs(left)].size() < operand_constraint_map[abs(right)].size()) {
         for (constraint_t *candidate : operand_constraint_map[abs(left)]) {
-            if (*candidate == *us) {
+            if (*candidate == us) {
                 return candidate->value;
             }
         }
     } else {
         for (constraint_t *candidate : operand_constraint_map[abs(right)]) {
-            if (*candidate == *us) {
+            if (*candidate == us) {
                 return candidate->value;
             }
         }
@@ -326,6 +327,8 @@ void model_t::add_reachable(int constraint_from) {
     for (constraint_t *con : to_add) {
         con->add(this);
     }
+
+    cleanup_visited;
 }
 
 void model_t::extend_solution() {
@@ -391,6 +394,8 @@ void model_t::extend_solution() {
             }
         }
     }
+
+    cleanup_visited;
 }
 
 lbool model_t::solve(bool only_indep_solution) {

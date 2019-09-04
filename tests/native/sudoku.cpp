@@ -81,6 +81,8 @@ void add_constraints(model_t *m, int ***grid) {
                 col[z] = grid[x][z][y];
             }
             one_of(m, col);
+            delete [] row;
+            delete [] col;
         }
     }
 
@@ -99,6 +101,7 @@ void add_constraints(model_t *m, int ***grid) {
                 }
                 assert(s_i == GMAX);
                 one_of(m, square);
+                delete [] square;
             }
         }
     }
