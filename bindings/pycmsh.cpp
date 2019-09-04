@@ -390,7 +390,7 @@ PyDoc_STRVAR(solve_doc,
     "    Whether or not the model is satisfiable\n"
 );
 
-static PyObject *solve(native_model *self, PyObject *args) {
+static PyObject *solve(native_model *self, PyObject *) {
     check_null;
 
     lbool ret = self->model->solve();
@@ -614,6 +614,24 @@ static PyTypeObject native_model_type = {
     (initproc)model_init, // tp_init
     0, // tp_alloc
     &PyType_GenericNew, // tp_new
+    0, // tp_free
+    0, // tp_is_gc
+    0, // tp_bases
+    0, // tp_mro
+    0, // tp_cache
+    0, // tp_subclasses
+    0, // tp_weaklist
+    0, // tp_del
+    0, // tp_version_tag
+#ifdef Py_TPFLAGS_HAVE_FINALIZE
+    0, // tp_finalize
+#endif
+#ifdef _Py_TPFLAGS_HAVE_VECTORCALL
+    0, // tp_vectorcall
+#endif
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 8
+    0, // tp_print
+#endif
 };
 
 
