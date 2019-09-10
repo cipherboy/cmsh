@@ -35,6 +35,8 @@ model_t::model_t(int threads, bool gauss) {
     // specified configuration. Note that all other members are allocated
     // as needed.
     solver = new SATSolver();
+    assert(solver != NULL);
+
     solver->set_num_threads(threads);
     if (gauss) {
         solver->set_allow_otf_gauss();
@@ -115,8 +117,9 @@ int model_t::cnf_from_constraint(int constraint_var) {
     int cnf_var = next_cnf();
     assert(cnf_var > 0);
 
-    constraint_cnf_map[abs(constraint_var)] = cnf_var;
-    cnf_constraint_map[cnf_var] = abs(constraint_var);
+    int a_constraint_var = abs(constraint_var);
+    constraint_cnf_map[a_constraint_var] = cnf_var;
+    cnf_constraint_map[cnf_var] = a_constraint_var;
 
     if (constraint_var < 0) {
         return -cnf_var;
@@ -128,17 +131,22 @@ int model_t::cnf_from_constraint(int constraint_var) {
 int model_t::find_constraint(int left, op_t op, int right) {
     constraint_t us(NULL, left, op, right);
 
+    int a_left = abs(left);
+    int a_right = abs(right);
+
     // Check the smaller of the two operand listings for this constraint.
     // Compare not the pointer value, but the object under the pointer.
-    if (operand_constraint_map[abs(left)].size() < operand_constraint_map[abs(right)].size()) {
-        for (constraint_t *candidate : operand_constraint_map[abs(left)]) {
+    if (operand_constraint_map[a_left].size() < operand_constraint_map[a_right].size()) {
+        for (constraint_t *candidate : operand_constraint_map[a_left]) {
             if (*candidate == us) {
+                assert(candidate->value != 0);
                 return candidate->value;
             }
         }
     } else {
-        for (constraint_t *candidate : operand_constraint_map[abs(right)]) {
+        for (constraint_t *candidate : operand_constraint_map[a_right]) {
             if (*candidate == us) {
+                assert(candidate->value != 0);
                 return candidate->value;
             }
         }
@@ -153,16 +161,18 @@ void model_t::update_solution(constraint_t *con) {
         return;
     }
 
+    int a_left = abs(con->left);
+    int a_right = abs(con->right);
+
     // If either of our parameters is not solved for, return.
-    if (!solution.contains(abs(con->left)) ||
-            !solution.contains(abs(con->right))) {
+    if (!solution.contains(a_left) || !solution.contains(a_right)) {
         return;
     }
 
     // Evaluate the value of the constraint and store it back in the solution
     // cache.
-    bool left_value = solution[abs(con->left)];
-    bool right_value = solution[abs(con->right)];
+    bool left_value = solution[a_left];
+    bool right_value = solution[a_right];
     bool con_value = con->eval(ubv(left_value, con->left < 0),
                                ubv(right_value, con->right < 0));
     solution[con->value] = con_value;
@@ -259,6 +269,8 @@ void model_t::update_max_vars() {
 }
 
 inline Lit model_t::to_lit(int var, bool neg) const {
+    assert(var != 0);
+
     bool sign = (var < 0) ^ neg;
     return Lit(abs(var), sign);
 }
@@ -355,9 +367,6 @@ void model_t::extend_solution() {
 
     while (!queue.empty()) {
         int var = queue.extract(queue.begin()).value();
-        if (is_visited(var)) {
-            continue;
-        }
         visit(var);
 
         bool var_value = solution[var];

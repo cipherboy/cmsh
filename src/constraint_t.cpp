@@ -24,6 +24,8 @@ constraint_t::constraint_t(model_t *m, int l, op_t o, int r) {
         right = l;
     }
 
+    assert(left <= right);
+
     // Allow constructing a constraint without a model reference: this
     // will prevent us from assigning a value, but still lets us use the
     // equality check. Two constraint_t's are equal <=> all inputs are
@@ -60,6 +62,11 @@ void constraint_t::assign_vars(model_t *m) {
     cnf_left = m->cnf_from_constraint(left);
     cnf_right = m->cnf_from_constraint(right);
     cnf_value = m->cnf_from_constraint(value);
+
+    // Validate that we actually got assignments.
+    assert(cnf_left != 0);
+    assert(cnf_right != 0);
+    assert(cnf_value != 0);
 }
 
 bool constraint_t::eval(bool left, bool right) const {
@@ -104,6 +111,10 @@ void constraint_t::tseitin(model_t *m) {
         case op_t::XOR:
             tseitin_xor(m);
             break;
+        default:
+            // Not reachable as our switch statement handles all possible
+            // operator values.
+            assert(false);
     }
 }
 
