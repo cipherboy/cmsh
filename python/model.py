@@ -348,5 +348,14 @@ class Model:
         return None
 
     def cleanup(self):
+        """
+        Clean up the solver after use, destroying all internal variables. This
+        helps when you know that you won't be using this particular solver
+        instance any more, freeing all used memory allocated by CryptoMiniSat,
+        and the cmsh native bindings. Otherwise, this memory will stay
+        allocated until a Python GC pass is performed.
+
+        You cannot use this instance after calling cleanup().
+        """
         self.solver.delete_model()
         self.solver = None
