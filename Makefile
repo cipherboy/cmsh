@@ -82,12 +82,12 @@ check: check-native
 	build/sudoku
 	PYTHONPATH=build $(PYTHON) -m pytest --ignore=msoos_cryptominisat
 
-check-native: build/basic_api build/sudoku
+check-native: cmsh build/basic_api build/sudoku
 
-build/basic_api: native tests/native/basic_api.cpp
+build/basic_api: tests/native/basic_api.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api
 
-build/sudoku: native tests/native/sudoku.cpp
+build/sudoku: tests/native/sudoku.cpp
 	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/sudoku.cpp -o build/sudoku
 
 # Clean targets
@@ -102,6 +102,9 @@ clean:
 # Helpers
 lint:
 	pylint build/cmsh
+
+install:
+	cd build/ && $(PYTHON) -m pip install --user -e .
 
 cms: msoos_cryptominisat
 	mkdir -p msoos_cryptominisat/build
