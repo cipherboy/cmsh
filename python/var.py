@@ -28,6 +28,46 @@ class Variable:
         """
         return self.model._get_value_(self.identifier)
 
+    def equals(self, other):
+        """
+        Implements the behavior of __eq__(self, other); checks whether this
+        variable is equal to other. Will not raise a type error.
+
+        Note that __eq__ as implemented by this class adds a clause to the
+        underlying CNF.
+
+        Args:
+            other: the object to compare with
+
+        Returns:
+            bool: whether or not this variable is equal to other
+        """
+        if other is None:
+            return False
+        if isinstance(other, bool):
+            return False
+        if isinstance(other, int):
+            return self.identifier == other
+        if isinstance(other, Variable):
+            return self.identifier == other.identifier
+        return False
+
+    def not_equals(self, other):
+        """
+        Implements the behavior of __ne__(self, other); checks whether this
+        variable is unequal to other. Will not raise a type error.
+
+        Note that __ne__ as implemented by this class adds a clause to the
+        underlying CNF.
+
+        Args:
+            other: the object to compare with
+
+        Returns:
+            bool: whether or not this variable is unequal to other
+        """
+        return not self.equals(other)
+
     def __and__(self, other):
         if not isinstance(other, (Variable, bool)):
             return NotImplemented
@@ -69,12 +109,24 @@ class Variable:
         return b_le(self, other)
 
     def __eq__(self, other):
+        if other is None:
+            msg = "Use `is` to check None-ness of variable. Use "
+            msg += "self.equals(other) to compare the values of "
+            msg += "variables when you know self is not None."
+            raise TypeError(msg)
+
         if not isinstance(other, (Variable, bool)):
             msg = "Can't compare Variable with %s" % type(other)
             raise TypeError(msg)
         return b_eq(self, other)
 
     def __ne__(self, other):
+        if other is None:
+            msg = "Use `is` to check None-ness of variable. Use "
+            msg += "self.not_equals(other) to compare the values of "
+            msg += "variables when you know self is not None."
+            raise TypeError(msg)
+
         if not isinstance(other, (Variable, bool)):
             msg = "Can't compare Variable with %s" % type(other)
             raise TypeError(msg)

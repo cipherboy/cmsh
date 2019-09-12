@@ -304,6 +304,60 @@ class Vector:
         new_vec = self.variables[-width:]
         return self.model.to_vector(new_vec)
 
+    def equals(self, other):
+        """
+        Implements the behavior of __eq__(self, other); checks whether this
+        vector is equal to other. Will not raise a type error.
+
+        Note that __eq__ as implemented by this class adds a clause to the
+        underlying CNF.
+
+        Args:
+            other: the object to compare with
+
+        Returns:
+            bool: whether or not this vector is equal to other
+        """
+        if other is None:
+            return False
+        if isinstance(other, Vector):
+            if self.count != other.count:
+                return False
+            return self.equals(other.variables)
+        if isinstance(other, (tuple, list)):
+            if self.count != len(other):
+                return False
+            for index, s_item in enumerate(self.variables):
+                o_item = other[index]
+                if isinstance(s_item, Variable):
+                    if not s_item.equals(o_item):
+                        return False
+                    continue
+                if isinstance(o_item, Variable):
+                    if not o_item.equals(Variable):
+                        return False
+                    continue
+                if s_item != o_item:
+                    continue
+            return True
+        return False
+
+    def not_equals(self, other):
+        """
+        Implements the behavior of __ne__(self, other); checks whether this
+        vector is unequal to other. Will not raise a type error.
+
+        Note that __ne__ as implemented by this class adds a clause to the
+        underlying CNF.
+
+        Args:
+            other: the object to compare with
+
+        Returns:
+            bool: whether or not this vector is unequal to other
+        """
+        return not self.equals(other)
+
     def __add__(self, other):
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
@@ -357,12 +411,24 @@ class Vector:
         return l_le(self, other)
 
     def __eq__(self, other):
+        if other is None:
+            msg = "Use `is` to check None-ness of vectors. Use "
+            msg += "self.equals(other) to compare the values of "
+            msg += "vectors when you know self is not None."
+            raise TypeError(msg)
+
         if not isinstance(other, (Vector, int, list, tuple)):
             msg = "Can't compare Vector with %s" % type(other)
             raise TypeError(msg)
         return l_eq(self, other)
 
     def __ne__(self, other):
+        if other is None:
+            msg = "Use `is` to check None-ness of vectors. Use "
+            msg += "self.not_equals(other) to compare the values of "
+            msg += "vectors when you know self is not None."
+            raise TypeError(msg)
+
         if not isinstance(other, (Vector, int, list, tuple)):
             msg = "Can't compare Vector with %s" % type(other)
             raise TypeError(msg)
