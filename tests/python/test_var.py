@@ -153,3 +153,48 @@ def test_hashable():
     c = mod.var()
 
     data = set([a, -b, c])
+
+
+def test_incorrect_comparisons():
+    mod = cmsh.Model()
+
+    a = mod.var()
+
+    with pytest.raises(TypeError):
+        if a == None:
+            pass
+    with pytest.raises(TypeError):
+        if a != None:
+            pass
+    with pytest.raises(TypeError):
+        b = None
+        if a == b:
+            pass
+    with pytest.raises(TypeError):
+        b == None
+        if a != b:
+            pass
+
+
+def test_equals_not_equals():
+    mod = cmsh.Model()
+
+    a = mod.var()
+    b = mod.var()
+
+    assert not a.equals(None)
+    assert a.not_equals(None)
+
+    assert not a.equals(b)
+    assert a.not_equals(b)
+
+    assert a.equals(int(a))
+    assert not a.not_equals(int(a))
+
+    assert not a.equals(int(b))
+    assert a.not_equals(int(b))
+
+    assert not a.equals(True)
+    assert not a.equals(False)
+    assert a.not_equals(True)
+    assert a.not_equals(False)
