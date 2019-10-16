@@ -70,6 +70,8 @@ void constraint_t::assign_vars(model_t *m) {
 }
 
 bool constraint_t::eval(bool left, bool right) const {
+    // Evaluate the value of a constraint based on boolean assignments for
+    // its variables.
     switch (op) {
         case op_t::AND:
             return left && right;
@@ -95,6 +97,8 @@ bool constraint_t::eval(bool left, bool right) const {
 }
 
 void constraint_t::tseitin(model_t *m) {
+    // Convert the constraint to a CNF form by performing a Tseitin
+    // transformation.
     switch (op) {
         case op_t::AND:
             tseitin_and(m);
@@ -161,6 +165,9 @@ size_t constraint_t::hash() const {
 namespace std {
     template<> struct hash<constraint_t> {
         size_t operator()(constraint_t const& object) {
+            // Enable a constraint to be hashable for direct inclusion in an
+            // ordered map. Note however that this is presently unused; only
+            // pointers to constraints are added to maps currently.
             return object.hash();
         }
     };

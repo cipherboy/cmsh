@@ -45,7 +45,8 @@ model_t::model_t(int threads, bool gauss) {
 
 model_t::~model_t() {
     // Free all constraints in this model. We allocate them in v_op and place
-    // the primary pointer to them in vector<constraint_t *> constraints.
+    // the primary pointer to them in vector<constraint_t *> constraints. All
+    // other references can be ignored.
     for (constraint_t *con : constraints) {
         delete con;
     }
@@ -344,6 +345,22 @@ void model_t::add_reachable(int constraint_from) {
 }
 
 void model_t::extend_solution() {
+    // extend_solution() is called by solve(...) to compute values for
+    // variables not part of the CNF but are fully determined by them. For
+    // instance, in the following example:
+    //      c1 = (v1 & v2)
+    //      model.assert(c1 == True)
+    //      c2 = (c1 | v2)
+    // c2 won't get added to the underlying CNF as it isn't reachable from
+    // the assert. However, after solving the model, c2's value is know: c1 has
+    // been solved for, and in solving for c2, v2 also has gotten a value.
+    //
+    // We extend the solution by traversing the list of CNF variables, marking
+    // them as solved, and on the edge of newly-solved variables, checking if
+    // all reachable constraints have two solved-for variables. Any such
+    // constraint is thus fully determined and can have its solution computed.
+    // The result variable is then added to the edge.
+
     const vector<lbool>& cnf_solution = solver->get_model();
     declare_visited;
     unordered_set<int> queue;
@@ -352,6 +369,9 @@ void model_t::extend_solution() {
 
     assert(cnf_solution.size() == (size_t)cnf_var);
 
+    // Walk all CNF variables: these correspond to constraint variables
+    // with a known solution. Add them to a queue of solved variables to
+    // process.
     for (int c_var = 1; c_var < cnf_var; c_var++) {
         assert(cnf_constraint_map.contains(c_var));
 
@@ -365,8 +385,14 @@ void model_t::extend_solution() {
         }
     }
 
+    // Processing a solved variable involves finding all constraints where it
+    // is an operand and, when both constraints have been solved for,
+    // computing the new value.
     while (!queue.empty()) {
         int var = queue.extract(queue.begin()).value();
+        if (is_visited(var)) {
+            continue;
+        }
         visit(var);
 
         bool var_value = solution[var];
@@ -376,6 +402,8 @@ void model_t::extend_solution() {
                 continue;
             }
 
+            // We need to know what side this var is on; otherwise we end up
+            // with duplicate lookups for var_value.
             if (abs(con->left) == var) {
                 if (!solution.contains(abs(con->right))) {
                     continue;
