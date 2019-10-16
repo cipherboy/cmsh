@@ -33,9 +33,9 @@ members are instances of `bool` and not `cmsh.Variable`.
 
 We expose three classes in `cmsh`:
 
-	1. `cmsh.Model`
-	2. `cmsh.Variable`
-	3. `cmsh.Vector`
+ 1. [`cmsh.Model`](#cmshmodel)
+ 2. [`cmsh.Variable`](#cmshvariable)
+ 3. [`cmsh.Vector`](#cmshvector)
 
 ### `cmsh.Model`
 
@@ -166,7 +166,7 @@ Add an assertion to the underlying model. Assertions is how you ground the
 model and tell it what to solve for: any clause which is required to derive
 the assertion is added to the CNF. This is usually a component of the
 high-level goal you're trying to solve for, e.g., that there's a collision or
-that the Sodoku is valid.
+that the Sudoku is valid.
 
 Once added, assertions cannot be removed; for removable assertions, see
 assumptions.
