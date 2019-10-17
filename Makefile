@@ -73,6 +73,7 @@ build/cmsh/_native$(PYEXT): bindings/pycmsh.cpp build/cmsh/libcmsh.so
 
 module: native python/*.py tools/setup.py
 	cp python/*.py build/cmsh/
+	cp python/*.pyi build/cmsh/
 	cp tools/setup.py build/setup.py
 
 test: check
@@ -102,6 +103,10 @@ clean:
 # Helpers
 lint:
 	pylint build/cmsh
+
+typecheck:
+	cd build && $(PYTHON) -m mypy --python-executable $(PYTHON) cmsh
+	MYPYPATH="build" $(PYTHON) -m mypy --python-executable $(PYTHON) --ignore-missing-imports tests/python
 
 install:
 	cd build/ && $(PYTHON) -m pip install --user -e .
