@@ -4,20 +4,24 @@ The vec module includes the Vector class.
 
 import math
 
+from typing import Any, List, Optional, Tuple, Union
+from ._vec_typing import IVariableIs, VariableSoft, VectorLike
+
 from .var import Variable, b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq
 
+# Due to mypy typing, we occasionally need extra-long function definitions.
+# pylint: disable=line-too-long,too-many-return-statements,too-many-public-methods
 
 class Vector:
     """
     A class which represents a collection of Variables or bools to be operated
     on together, e.g., via addition.
     """
-    variables = None
-    hash_code = None
-    count = None
-    model = None
+    variables: List[VariableSoft]
+    hash_code: int
+    count: int
 
-    def __init__(self, model, width=None, vector=None):
+    def __init__(self, model, width: Optional[int] = None, vector: Union['Vector', IVariableIs] = None):
         """
         Initialize a new Vector object. Either specify width or vector, but not
         both. When width is specified, creates a new Vector with width number
@@ -40,7 +44,7 @@ class Vector:
 
         if vector and isinstance(vector, Vector):
             self.variables = vector.variables[:]
-        elif vector is not None:
+        elif vector is not None and not isinstance(vector, Vector):
             self.variables = []
             for index, item in enumerate(vector):
                 if isinstance(item, (bool, Variable)):
@@ -48,7 +52,7 @@ class Vector:
                 elif isinstance(item, int):
                     self.variables.append(Variable(model, item))
                 else:
-                    msg += f"Expected element at pos {index} to be a "
+                    msg = f"Expected element at pos {index} to be a "
                     msg += "variable-like object (Variable, bool, or int), "
                     msg += f"but was actually of type {type(item)}"
                     raise ValueError(msg)
@@ -56,7 +60,7 @@ class Vector:
         self.count = len(self.variables)
         self.hash_code = tuple(self.variables).__hash__()
 
-    def bit_sum(self):
+    def bit_sum(self) -> 'Vector':
         """
         Computes the bitwise sum of all values in this Vector. That is, how
         many values are True.
@@ -66,7 +70,7 @@ class Vector:
         """
         return sum_array(self)
 
-    def bit_odd(self):
+    def bit_odd(self) -> VariableSoft:
         """
         Whether or not an odd number of bits are set to True.
 
@@ -75,7 +79,7 @@ class Vector:
         """
         return self.bit_sum()[-1]
 
-    def bit_even(self):
+    def bit_even(self) -> VariableSoft:
         """
         Opposite of bit_odd: whether or not an even number of bits are True.
 
@@ -84,7 +88,7 @@ class Vector:
         """
         return b_not(self.bit_odd())
 
-    def odd(self):
+    def odd(self) -> VariableSoft:
         """
         Whether or not this Vector is odd.
 
@@ -93,7 +97,7 @@ class Vector:
         """
         return self.variables[-1]
 
-    def even(self):
+    def even(self) -> VariableSoft:
         """
         Whether or not this Vector is even.
 
@@ -102,7 +106,7 @@ class Vector:
         """
         return b_not(self.odd())
 
-    def bit_and(self):
+    def bit_and(self) -> VariableSoft:
         """
         Computes a boolean AND function across all variables in the Vector.
         That is: and(self[0], and(self[1], ...)).
@@ -112,7 +116,7 @@ class Vector:
         """
         return flatten(self, b_and)
 
-    def bit_nand(self):
+    def bit_nand(self) -> VariableSoft:
         """
         Computes a boolean NAND function across all variables in the Vector.
         That is: nand(self[0], nand(self[1], ...)).
@@ -122,7 +126,7 @@ class Vector:
         """
         return flatten(self, b_nand)
 
-    def bit_or(self):
+    def bit_or(self) -> VariableSoft:
         """
         Computes a boolean OR function across all variables in the Vector.
         That is: or(self[0], or(self[1], ...)).
@@ -132,7 +136,7 @@ class Vector:
         """
         return flatten(self, b_or)
 
-    def bit_nor(self):
+    def bit_nor(self) -> VariableSoft:
         """
         Computes a boolean NOR function across all variables in the Vector.
         That is: nor(self[0], nor(self[1], ...)).
@@ -142,7 +146,7 @@ class Vector:
         """
         return flatten(self, b_nor)
 
-    def bit_xor(self):
+    def bit_xor(self) -> VariableSoft:
         """
         Computes a boolean XOR function across all variables in the Vector.
         That is: xor(self[0], xor(self[1], ...)).
@@ -152,7 +156,7 @@ class Vector:
         """
         return flatten(self, b_xor)
 
-    def splat_and(self, var):
+    def splat_and(self, var) -> Union[VectorLike, 'Vector']:
         """
         Splats a single variable across all Vector members via the AND
         function, returning the result. That is:
@@ -166,7 +170,7 @@ class Vector:
         """
         return splat(var, self, b_and)
 
-    def splat_nand(self, var):
+    def splat_nand(self, var) -> Union[VectorLike, 'Vector']:
         """
         Splats a single variable across all Vector members via the NAND
         function, returning the result. That is:
@@ -180,7 +184,7 @@ class Vector:
         """
         return splat(var, self, b_nand)
 
-    def splat_or(self, var):
+    def splat_or(self, var) -> Union[VectorLike, 'Vector']:
         """
         Splats a single variable across all Vector members via the OR
         function, returning the result. That is:
@@ -194,7 +198,7 @@ class Vector:
         """
         return splat(var, self, b_or)
 
-    def splat_nor(self, var):
+    def splat_nor(self, var) -> Union[VectorLike, 'Vector']:
         """
         Splats a single variable across all Vector members via the NOR
         function, returning the result. That is:
@@ -208,7 +212,7 @@ class Vector:
         """
         return splat(var, self, b_nor)
 
-    def splat_xor(self, var):
+    def splat_xor(self, var) -> Union[VectorLike, 'Vector']:
         """
         Splats a single variable across all Vector members via the XOR
         function, returning the result. That is:
@@ -222,7 +226,7 @@ class Vector:
         """
         return splat(var, self, b_xor)
 
-    def rotl(self, amount=1):
+    def rotl(self, amount: int = 1) -> Union[VectorLike, 'Vector']:
         """
         Rotates this vector left by amount bits, returning the result as a
         new Vector.
@@ -233,11 +237,11 @@ class Vector:
         Returns:
             Vector: the result of rotating this Vector.
         """
-        amount = abs(amount) % (self.count+1)
+        amount = abs(amount) % (self.count + 1)
         new_vec = self.variables[amount:] + self.variables[:amount]
         return self.model.to_vector(new_vec)
 
-    def rotr(self, amount=1):
+    def rotr(self, amount: int = 1) -> Union[VectorLike, 'Vector']:
         """
         Rotates this vector right by amount bits, returning the result as a
         new Vector.
@@ -248,11 +252,11 @@ class Vector:
         Returns:
             Vector: the result of rotating this Vector.
         """
-        amount = abs(amount) % (self.count+1)
+        amount = abs(amount) % (self.count + 1)
         new_vec = self.variables[-amount:] + self.variables[:-amount]
         return self.model.to_vector(new_vec)
 
-    def shiftl(self, amount=1, filler=False):
+    def shiftl(self, amount: int = 1, filler: VariableSoft = False):
         """
         Create a new Vector representing this one shifted left by amount
         bits, filling in with filler bits. This increases the width of the
@@ -269,7 +273,7 @@ class Vector:
         new_vec = self.variables[amount:] + [filler]*amount
         return self.model.to_vector(new_vec)
 
-    def shiftr(self, amount=1, filler=None):
+    def shiftr(self, amount: int = 1, filler: VariableSoft = None) -> Union[VectorLike, 'Vector']:
         """
         Create a new Vector representing this one shifted right by amount
         bits, optionally filling in with filler bits (when not None). This
@@ -289,7 +293,7 @@ class Vector:
             new_vec = [filler]*amount + new_vec
         return self.model.to_vector(new_vec)
 
-    def truncate(self, width):
+    def truncate(self, width: int) -> Union[VectorLike, 'Vector']:
         """
         Truncate this Vector to the desired with, keeping the right most bits.
         Returns the result as a new Vector. To truncate keeping the left most
@@ -304,7 +308,7 @@ class Vector:
         new_vec = self.variables[-width:]
         return self.model.to_vector(new_vec)
 
-    def equals(self, other):
+    def equals(self, other) -> bool:
         """
         Implements the behavior of __eq__(self, other); checks whether this
         vector is equal to other. Will not raise a type error.
@@ -342,7 +346,7 @@ class Vector:
             return True
         return False
 
-    def not_equals(self, other):
+    def not_equals(self, other) -> bool:
         """
         Implements the behavior of __ne__(self, other); checks whether this
         vector is unequal to other. Will not raise a type error.
@@ -358,54 +362,54 @@ class Vector:
         """
         return not self.equals(other)
 
-    def __add__(self, other):
+    def __add__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         result, _ = ripple_carry_adder(self, other)
         return result
 
-    def __and__(self, other):
+    def __and__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_and(self, other)
 
-    def __xor__(self, other):
+    def __xor__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_xor(self, other)
 
-    def __or__(self, other):
+    def __or__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_or(self, other)
 
-    def __radd__(self, other):
+    def __radd__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         result, _ = ripple_carry_adder(self, other)
         return result
 
-    def __rand__(self, other):
+    def __rand__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_and(self, other)
 
-    def __rxor__(self, other):
+    def __rxor__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_xor(self, other)
 
-    def __ror__(self, other):
+    def __ror__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_or(self, other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[VectorLike, 'Vector']):
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_lt(self, other)
 
-    def __le__(self, other):
+    def __le__(self, other: Union[VectorLike, 'Vector']):
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
         return l_le(self, other)
@@ -418,7 +422,9 @@ class Vector:
             raise TypeError(msg)
 
         if not isinstance(other, (Vector, int, list, tuple)):
-            msg = "Can't compare Vector with %s" % type(other)
+            msg = f"Can't compare Vector with {type(other)}. Usually this "
+            msg += "is the result of a programming error. Check the type of "
+            msg += "all arguments."
             raise TypeError(msg)
         return l_eq(self, other)
 
@@ -430,7 +436,9 @@ class Vector:
             raise TypeError(msg)
 
         if not isinstance(other, (Vector, int, list, tuple)):
-            msg = "Can't compare Vector with %s" % type(other)
+            msg = f"Can't compare Vector with {type(other)}. Usually this "
+            msg += "is the result of a programming error. Check the type of "
+            msg += "all arguments."
             raise TypeError(msg)
         return l_ne(self, other)
 
@@ -444,13 +452,13 @@ class Vector:
             return NotImplemented
         return l_ge(self, other)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.count
 
     def __neg__(self):
         return l_not(self)
 
-    def __pos__(self):
+    def __pos__(self) -> 'Vector':
         return self
 
     def __abs__(self):
@@ -461,7 +469,7 @@ class Vector:
             return self.variables[key]
         return self.model.to_vector(self.variables[key])
 
-    def insert(self, index, obj):
+    def insert(self, index: int, obj: VariableSoft) -> None:
         """
         Add another object (a Variable or bool) to the Vector at the location
         specified by index.
@@ -474,14 +482,14 @@ class Vector:
         self.variables = self.variables[0:index] + [obj] + self.variables[index:]
         self.hash_code = tuple(self.variables).__hash__()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.hash_code
 
-    def __int__(self):
+    def __int__(self) -> int:
         bits = map(lambda x: str(int(bool(x))), self.variables)
         return int("".join(bits), 2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = "<"
         result += ", ".join(map(str, self.variables))
         result += ">"
@@ -489,7 +497,7 @@ class Vector:
         return result
 
 
-def _from_arg_(arg, have_model=False):
+def _from_arg_(arg: Union[VectorLike, Vector], have_model: bool = False) -> tuple:
     """
     Parses a vector argument: returns an iterable, a reference to the model if
     present, and whether or not the argument is of fixed length (i.e., is not
@@ -505,12 +513,11 @@ def _from_arg_(arg, have_model=False):
     """
     # ret: [Vector/list/tuple], model, is_fixed
 
-    atype = type(arg)
-    if atype == int:
+    if isinstance(arg, int):
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
 
-    if atype in (list, tuple):
+    if isinstance(arg, (list, tuple)):
         model = None
         if not have_model:
             for item in arg:
@@ -521,7 +528,7 @@ def _from_arg_(arg, have_model=False):
     return arg, arg.model, True
 
 
-def __validate_size__(left, l_fixed, right, r_fixed):
+def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[VariableSoft], r_fixed: bool) -> Tuple[List[VariableSoft], List[VariableSoft]]:
     """
     On two value functions, validate that the left and right values are of
     similar enough sizes. If not, and the smaller isn't of fixed size, we
@@ -547,18 +554,18 @@ def __validate_size__(left, l_fixed, right, r_fixed):
         raise ValueError("Value of constant (%d) exceeds size: %d" % (l_len, r_len))
 
     if l_len < r_len:
-        prefix = [False] * (r_len - l_len)
-        prefix.extend(left)
-        left = prefix
+        l_prefix: List[VariableSoft] = [False] * (r_len - l_len)
+        l_prefix.extend(left)
+        left = l_prefix
     elif r_len < l_len:
-        prefix = [False] * (l_len - r_len)
-        prefix.extend(right)
-        right = prefix
+        r_prefix: List[VariableSoft] = [False] * (l_len - r_len)
+        r_prefix.extend(right)
+        right = r_prefix
 
     return left, right
 
 
-def _parse_args_(left, right):
+def _parse_args_(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Tuple[List[VariableSoft], List[VariableSoft], Any]:
     """
     Parse arguments to a two valued Vector function. Ensures both are of the
     same size. Returns a model if present.
@@ -578,7 +585,7 @@ def _parse_args_(left, right):
     return l_list, r_list, model
 
 
-def l_and(left, right):
+def l_and(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the bitwise AND operation between two vectors.
 
@@ -599,7 +606,7 @@ def l_and(left, right):
     return result
 
 
-def l_nand(left, right):
+def l_nand(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the bitwise NAND operation between two vectors.
 
@@ -620,7 +627,7 @@ def l_nand(left, right):
     return result
 
 
-def l_or(left, right):
+def l_or(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the bitwise OR operation between two vectors.
 
@@ -641,7 +648,7 @@ def l_or(left, right):
     return result
 
 
-def l_nor(left, right):
+def l_nor(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the bitwise NOR operation between two vectors.
 
@@ -662,7 +669,7 @@ def l_nor(left, right):
     return result
 
 
-def l_not(vec):
+def l_not(vec: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the negation of all items in the Vector.
 
@@ -682,7 +689,7 @@ def l_not(vec):
     return result
 
 
-def l_xor(left, right):
+def l_xor(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
     """
     Compute the bitwise XOR operation between two vectors.
 
@@ -703,7 +710,7 @@ def l_xor(left, right):
     return result
 
 
-def l_lt(left, right):
+def l_lt(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is less than the right argument.
 
@@ -720,7 +727,7 @@ def l_lt(left, right):
         return True
 
     result = b_lt(l_list[0], r_list[0])
-    and_list = True
+    and_list: VariableSoft = True
     for index, (l_item, r_item) in enumerate(zip(l_list[1:], r_list[1:]), 1):
         and_list = b_and(and_list, b_eq(l_list[index-1], r_list[index-1]))
         result = b_or(result, b_and(and_list, b_lt(l_item, r_item)))
@@ -728,7 +735,7 @@ def l_lt(left, right):
     return result
 
 
-def l_le(left, right):
+def l_le(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is less than or equal to the right
     argument.
@@ -743,7 +750,7 @@ def l_le(left, right):
     return b_or(l_lt(left, right), l_eq(left, right))
 
 
-def l_eq(left, right):
+def l_eq(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is equal to the right argument.
 
@@ -766,7 +773,7 @@ def l_eq(left, right):
     return result
 
 
-def l_ne(left, right):
+def l_ne(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is not equal to the right argument.
 
@@ -780,7 +787,7 @@ def l_ne(left, right):
     return b_not(l_eq(left, right))
 
 
-def l_gt(left, right):
+def l_gt(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is greater than the right argument.
 
@@ -794,7 +801,7 @@ def l_gt(left, right):
     return b_not(b_or(l_lt(left, right), l_eq(left, right)))
 
 
-def l_ge(left, right):
+def l_ge(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> VariableSoft:
     """
     Checks whether the left argument is greater than or equal to the right
     argument.
@@ -809,7 +816,7 @@ def l_ge(left, right):
     return b_or(l_gt(left, right), l_eq(left, right))
 
 
-def full_adder(left_bit, right_bit, carry_in):
+def full_adder(left_bit: VariableSoft, right_bit: VariableSoft, carry_in: VariableSoft) -> Tuple[VariableSoft, VariableSoft]:
     """
     Implements a single full adder across two bits and a carry bit.
 
@@ -827,7 +834,7 @@ def full_adder(left_bit, right_bit, carry_in):
     return output, carry_out
 
 
-def ripple_carry_adder(left, right, carry=False):
+def ripple_carry_adder(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], carry: VariableSoft = False) -> Tuple[Union[VectorLike, Vector], VariableSoft]:
     """
     Implements a ripple carry adder, returning the result and the carry bit.
 
@@ -842,13 +849,14 @@ def ripple_carry_adder(left, right, carry=False):
     """
     l_list, r_list, model = _parse_args_(left, right)
 
-    result = []
+    result: List[VariableSoft] = []
     for index in range(len(l_list) - 1, -1, -1):
+        new_bit: VariableSoft
         new_bit, carry = full_adder(l_list[index], r_list[index], carry)
         result = [new_bit] + result
 
     if model:
-        result = model.to_vector(result)
+        return model.to_vector(result), carry
 
     return result, carry
 
@@ -882,12 +890,12 @@ def sum_array(vec):
         result, _ = ripple_carry_adder(result, prefix + [item])
 
     if v_model:
-        result = v_model.to_vector(result)
+        return v_model.to_vector(result)
 
     return result
 
 
-def flatten(vec, func):
+def flatten(vec: Union[VectorLike, Vector], func):
     """
     Flatten a vector by applying a two argument boolean function to the values.
     That is, result = func(vec[0], func(vec[1], ...)).
@@ -908,7 +916,7 @@ def flatten(vec, func):
     return result
 
 
-def splat(var, vec, func):
+def splat(var: VariableSoft, vec: Union[VectorLike, Vector], func):
     """
     Splat a variable across all values in the vector, via application of a
     boolean function to all values.
