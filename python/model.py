@@ -2,14 +2,19 @@
 This module contains the main Module class.
 """
 
+# pylint: disable=line-too-long,no-name-in-module,no-self-use
+
+from typing import List, Optional
+
+from ._vec_typing import VariableIs, VariableSoft, VectorLike
+from ._model_typing import IVariableHard, IVector, VariableHard, VectorSized
 
 from ._native import model as native_model
 
 from .var import Variable
 from .vec import Vector
 
-
-def _int_to_vector_(number):
+def _int_to_vector_(number: int):
     """
     Converts an int to a list of bools.
 
@@ -39,8 +44,8 @@ class Model:
     >>> assert bool(a) and bool(b)
     """
 
-    solver = None
-    sat = None
+    solver: native_model
+    sat: Optional[bool] = None
 
     def __init__(self):
         """
@@ -48,7 +53,7 @@ class Model:
         """
         self.solver = native_model()
 
-    def var(self):
+    def var(self) -> Variable:
         """
         Create a new variable.
 
@@ -57,7 +62,7 @@ class Model:
         """
         return self.variable()
 
-    def variable(self):
+    def variable(self) -> Variable:
         """
         Create a new variable.
 
@@ -66,7 +71,7 @@ class Model:
         """
         return Variable(self, self.solver.var())
 
-    def to_vec(self, other, width=None):
+    def to_vec(self, other: VectorLike, width: Optional[int] = None) -> Vector:
         """
         Converts the specified object into a Vector of width, if present.
 
@@ -78,7 +83,7 @@ class Model:
         """
         return self.to_vector(other, width=width)
 
-    def to_vector(self, other, width=None):
+    def to_vector(self, other: VectorLike, width: Optional[int] = None) -> Vector:
         """
         Converts the specified object into a Vector of width, if present.
 
@@ -89,18 +94,25 @@ class Model:
             Vector: A vector representing the input parameter.
         """
 
+        if isinstance(other, Vector):
+            if width:
+                return self.to_vector(other.variables, width)
+            return other
+
         if isinstance(other, int):
-            other = _int_to_vector_(other)
+            return self.to_vector(_int_to_vector_(other), width)
 
         if width:
-            if len(other) > width:
+            l_other: int = len(other)
+            if l_other > width:
                 raise ValueError("Length of object exceeds width")
-            difference = [False]*(width - len(other))
-            other = difference + other
+
+            difference: List[VariableIs] = [False]*(width - l_other)
+            return Vector(self, vector=difference + list(other))
 
         return Vector(self, vector=other)
 
-    def vec(self, width):
+    def vec(self, width: int) -> Vector:
         """
         Create a new vector of the specified width.
 
@@ -112,7 +124,7 @@ class Model:
         """
         return self.vector(width)
 
-    def vector(self, width):
+    def vector(self, width: int) -> Vector:
         """
         Create a new vector of the specified width.
 
@@ -124,7 +136,7 @@ class Model:
         """
         return Vector(self, width=width)
 
-    def join_vec(self, vectors):
+    def join_vec(self, vectors: IVector) -> Vector:
         """
         Returns a single Vector out of a list or tuple of Vectors, appending
         them together.
@@ -136,13 +148,13 @@ class Model:
         Returns:
             Vector: a single vector of all passed Vectors.
         """
-        interior = []
+        interior: List[VariableSoft] = []
         for vec in vectors:
             interior.extend(vec.variables)
 
         return self.to_vector(interior)
 
-    def split_vec(self, vector, width):
+    def split_vec(self, vector: VectorSized, width: int) -> List[Vector]:
         """
         Returns a list of Vectors splitting the specified vector into a series
         of different vectors.
@@ -163,7 +175,7 @@ class Model:
 
         return vectors
 
-    def neg_var(self, var):
+    def neg_var(self, var: VariableHard) -> Variable:
         """
         Negate the specified variable. e.g., var -> -var
 
@@ -173,15 +185,14 @@ class Model:
         Returns:
             Variable: the negation of var.
         """
-        vtype = type(var)
-        if vtype == int:
+        if isinstance(var, int):
             return Variable(self, identifier=-var)
-        if vtype == Variable:
+        if isinstance(var, Variable):
             return Variable(self, identifier=-var.identifier)
 
         raise TypeError(f"Unknown type to negate: {type(var)}")
 
-    def add_constraint(self, left, operator, right):
+    def add_constraint(self, left: int, operator: str, right: int) -> Variable:
         """
         Add a constraint to the model.
 
@@ -219,7 +230,7 @@ class Model:
 
         raise ValueError(f"Unknown operator: {operator}")
 
-    def add_assert(self, var):
+    def add_assert(self, var: VariableHard) -> None:
         """
         Add an assertion that a single Variable is true via adding a clause
         with only that variable. Note that clauses cannot be removed.
@@ -229,9 +240,9 @@ class Model:
         """
         if isinstance(var, bool):
             raise ValueError(f"Expected Variable or int; got bool: {var}")
-        self.solver.v_assert(var)
+        self.solver.v_assert(int(var))
 
-    def add_assume(self, var):
+    def add_assume(self, var: VariableHard) -> None:
         """
         Adds an assumption about the truthiness of a variable in the model.
         Assertions can be removed at a later time via remove_assume(...).
@@ -244,10 +255,9 @@ class Model:
         Args:
             var (int or Variable): variable or its identifier to assume.
         """
-        vtype = type(var)
-        if vtype == bool:
+        if isinstance(var, bool):
             raise ValueError(f"Expected Variable or int; got bool: {var}")
-        if vtype == int:
+        if isinstance(var, int):
             if abs(var) > self.solver.num_constraint_vars():
                 msg = f"Passed identifier {var} exceeds number of vars: "
                 msg += f"{self.solver.num_constraint_vars()}"
@@ -260,28 +270,26 @@ class Model:
                 raise ValueError(msg)
             self.solver.v_assume(var.identifier)
 
-    def remove_assume(self, var):
+    def remove_assume(self, var: VariableHard) -> None:
         """
         Removes an assumption about the truthiness of a variable.
 
         Args:
             var (int or Variable): variable or its identifier to assume.
         """
-        vtype = type(var)
-        if vtype == bool:
+        if isinstance(var, bool):
             raise ValueError(f"Expected Variable or int; got bool: {var}")
-        if vtype == int:
+        if isinstance(var, int):
             self.solver.v_unassume(var)
         else:
             self.solver.v_unassume(var.identifier)
 
 
-    def __to_ident__(self, var):
-        vtype = type(var)
-        if vtype == bool:
+    def __to_ident__(self, var: VariableHard) -> int:
+        if isinstance(var, bool):
             msg = "Cannot pass bool as an identifier into CNF clause"
             raise ValueError(msg)
-        if vtype == int:
+        if isinstance(var, int):
             if abs(var) > self.solver.num_constraint_vars():
                 msg = f"Passed identifier {var} exceeds number of vars: "
                 msg += f"{self.solver.num_constraint_vars()}"
@@ -293,7 +301,7 @@ class Model:
             raise ValueError(msg)
         return var.identifier
 
-    def negate_solution(self, variables):
+    def negate_solution(self, variables: IVariableHard) -> VariableIs:
         """
         Given a set of variables, return a variable expressing the negation
         of their values. Used in incremental solving to find another solution.
@@ -309,17 +317,14 @@ class Model:
 
         var_list = list(variables)
         bool_vars = list(map(bool, var_list))
-        result = None
+        result = False
 
         for _index, var in enumerate(var_list):
-            if result is None:
-                result = var != bool_vars[_index]
-            else:
-                result = result | (var != bool_vars[_index])
+            result = result | (var != bool_vars[_index])
 
         return result
 
-    def solve(self):
+    def solve(self) -> Optional[bool]:
         """
         Solve the current model. This adds all new clauses to the solver and
         runs CMS under the present assumptions.
@@ -330,7 +335,7 @@ class Model:
         self.sat = self.solver.solve()
         return self.sat
 
-    def _get_value_(self, identifier):
+    def _get_value_(self, identifier: VariableHard) -> Optional[bool]:
         """
         Get the value of a variable by its identifier. Returns None if the
         model is unsatisfiable or unsolved.
