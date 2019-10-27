@@ -53,6 +53,13 @@ class Model:
         """
         self.solver = native_model()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type=None, value=None, traceback=None):
+        self.cleanup()
+        return False
+
     def var(self) -> Variable:
         """
         Create a new variable.

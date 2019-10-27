@@ -102,3 +102,13 @@ def test_assumptions():
     assert not mod.solve()
 
     mod.remove_assume(a.identifier)
+
+def test_context():
+    with cmsh.Model() as model:
+        a = model.var()
+        b = model.var()
+
+        model.add_assert((a^b) == True)
+        assert model.solve()
+
+        assert ((not bool(a)) and bool(b)) or (bool(a) and (not bool(b)))
