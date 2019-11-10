@@ -1,11 +1,11 @@
 CXX?=g++
-CMS?=$(CURDIR)/msoos_cryptominisat/build
+CMS?=${CURDIR}/msoos_cryptominisat/build
 PYTHON?=python3
 
 # Python-specific configuration
-PYINCLUDE=$(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY"))')
-PYLDVERSION=$(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_config_var("LDVERSION"))')
-PYEXT=$(shell $(PYTHON) -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
+PYINCLUDE=$(shell ${PYTHON} -c 'import sysconfig; print(sysconfig.get_config_var("INCLUDEPY"))')
+PYLDVERSION=$(shell ${PYTHON} -c 'import sysconfig; print(sysconfig.get_config_var("LDVERSION"))')
+PYEXT=$(shell ${PYTHON} -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
 
 # Various sets of compilation flags
 DEBUGFLAGS=-Og -ggdb -DDEBUG=1 -pg
@@ -14,13 +14,13 @@ DISABLEDWARNINGS=-Wno-error=cast-function-type -Wno-error=unused-parameter -Wno-
 CLANGWARNINGS=-Wno-unused-command-line-argument -Wno-unknown-warning-option
 WARNINGFLAGS=-std=c++2a -Wall -Werror -Wextra -pedantic
 GENERALFLAGS=-pthread -fwrapv -m64 -pipe -fexceptions -DDYNAMIC_ANNOTATIONS_ENABLED=1 -fPIC -fasynchronous-unwind-tables -D_GNU_SOURCE
-SECURITYFLAGS=-Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -grecord-gcc-switches -fcf-protection
+SECURITYFLAGS+=-Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS -fstack-protector-strong -grecord-gcc-switches -fcf-protection
 
 COMPILEFLAGS=${CPPFLAGS} ${CXXFLAGS} ${GENERALFLAGS} ${SECURITYFLAGS}
 CMSCOMPILEFLAGS=${GENERALFLAGS} ${SECURITYFLAGS}
 
 # We need optimizations for -D_FORTIFY_SOURCE; always add some.
-ifeq ($(DEBUG),1)
+ifeq (${DEBUG},1)
 COMPILEFLAGS+=${DEBUGFLAGS}
 CMSCOMPILEFLAGS+=${DEBUGFLAGS}
 else
@@ -29,9 +29,9 @@ CMSCOMPILEFLAGS+=${OPTIMIZEFLAGS}
 endif
 
 # Library linking flags
-CMSFLAGS=-I$(CURDIR)/build/include -L$(CURDIR)/build/cmsh -lcryptominisat5 -Wl,-rpath,$(CURDIR)/build/cmsh
-CMSHFLAGS=$(CMSFLAGS) -lcmsh -Wl,-rpath,$(CURDIR)/build/cmsh
-PYTHONFLAGS=-I$(PYINCLUDE) -lpython$(PYLDVERSION)
+CMSFLAGS=-I${CURDIR}/build/include -L${CURDIR}/build/cmsh -lcryptominisat5 -Wl,-rpath,${CURDIR}/build/cmsh
+CMSHFLAGS=${CMSFLAGS} -lcmsh -Wl,-rpath,${CURDIR}/build/cmsh
+PYTHONFLAGS=-I${PYINCLUDE} -lpython${PYLDVERSION}
 LINKERFLAGS=${LDFLAGS} -Wl,-z,relro -Wl,--as-needed -Wl,-z,now -g
 
 
@@ -53,23 +53,23 @@ build/.objects:
 	mkdir -p build/.objects
 
 cmslibs: dirs
-	cp -r $(CMS)/cmsat5-src/cryptominisat5 build/include/
-	cp -r $(CMS)/lib/libcryptominisat5.so* build/cmsh/
+	cp -r ${CMS}/cmsat5-src/cryptominisat5 build/include/
+	cp -r ${CMS}/lib/libcryptominisat5.so* build/cmsh/
 
 native: dirs build/cmsh/libcmsh.so build/cmsh/_native${PYEXT}
 
 build/cmsh/libcmsh.so: build/.objects/constraint_t.o build/.objects/model_t.o
-	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(LINKERFLAGS) -shared build/.objects/constraint_t.o build/.objects/model_t.o -o build/cmsh/libcmsh.so
+	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${LINKERFLAGS} -shared build/.objects/constraint_t.o build/.objects/model_t.o -o build/cmsh/libcmsh.so
 	cp src/cmsh.h build/include/cmsh.h
 
 build/.objects/constraint_t.o: src/constraint_t.cpp src/cmsh.h
-	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSFLAGS) -c src/constraint_t.cpp -o build/.objects/constraint_t.o
+	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSFLAGS} -c src/constraint_t.cpp -o build/.objects/constraint_t.o
 
 build/.objects/model_t.o: src/model_t.cpp src/cmsh.h
-	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSFLAGS) -c src/model_t.cpp -o build/.objects/model_t.o
+	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSFLAGS} -c src/model_t.cpp -o build/.objects/model_t.o
 
-build/cmsh/_native$(PYEXT): bindings/pycmsh.cpp build/cmsh/libcmsh.so
-	$(CXX) $(COMPILEFLAGS) $(DISABLEDWARNINGS) $(WARNINGFLAGS) $(CMSFLAGS) $(CMSHFLAGS) $(PYTHONFLAGS) -shared bindings/pycmsh.cpp -o build/cmsh/_native$(PYEXT)
+build/cmsh/_native${PYEXT}: bindings/pycmsh.cpp build/cmsh/libcmsh.so
+	${CXX} ${COMPILEFLAGS} ${DISABLEDWARNINGS} ${WARNINGFLAGS} ${CMSFLAGS} ${CMSHFLAGS} ${PYTHONFLAGS} -shared bindings/pycmsh.cpp -o build/cmsh/_native${PYEXT}
 
 module: native python/*.py tools/setup.py
 	cp python/*.py build/cmsh/
@@ -81,15 +81,15 @@ test: check
 check: check-native
 	build/basic_api
 	build/sudoku
-	PYTHONPATH=build $(PYTHON) -m pytest --ignore=msoos_cryptominisat
+	PYTHONPATH=build ${PYTHON} -m pytest --ignore=msoos_cryptominisat
 
 check-native: cmsh build/basic_api build/sudoku
 
 build/basic_api: tests/native/basic_api.cpp
-	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/basic_api.cpp -o build/basic_api
+	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} tests/native/basic_api.cpp -o build/basic_api
 
 build/sudoku: tests/native/sudoku.cpp
-	$(CXX) $(WARNINGFLAGS) $(COMPILEFLAGS) $(CMSHFLAGS) tests/native/sudoku.cpp -o build/sudoku
+	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} tests/native/sudoku.cpp -o build/sudoku
 
 # Clean targets
 distclean: clean
@@ -105,15 +105,15 @@ lint:
 	pylint build/cmsh
 
 typecheck:
-	cd build && $(PYTHON) -m mypy --python-executable $(PYTHON) cmsh
-	MYPYPATH="build" $(PYTHON) -m mypy --python-executable $(PYTHON) --ignore-missing-imports tests/python
+	cd build && ${PYTHON} -m mypy --python-executable ${PYTHON} cmsh
+	MYPYPATH="build" ${PYTHON} -m mypy --python-executable ${PYTHON} --ignore-missing-imports tests/python
 
 install:
-	cd build/ && $(PYTHON) -m pip install --user -e .
+	cd build/ && ${PYTHON} -m pip install --user -e .
 
 cms: msoos_cryptominisat
 	mkdir -p msoos_cryptominisat/build
-	cd msoos_cryptominisat/build && cmake -DUSE_GAUSS=ON -DENABLE_TESTING=OFF -DMIT=OFF -DDNOVALGRIND=ON .. && make
+	cd msoos_cryptominisat/build && CFLAGS="${CMSCOMPILEFLAGS}" CXX="${CXX}" cmake -DUSE_GAUSS=ON -DENABLE_TESTING=OFF -DMIT=OFF -DDNOVALGRIND=ON -DENABLE_PYTHON_INTERFACE=OFF .. && make -j $(shell nproc)
 	cd ../../
 
 msoos_cryptominisat:
