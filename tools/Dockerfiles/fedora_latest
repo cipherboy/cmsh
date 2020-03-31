@@ -1,0 +1,22 @@
+FROM fedora:latest
+
+RUN true \
+        && dnf update --refresh -y \
+        && dnf install -y cmake valgrind valgrind-devel gcc gcc-c++ automake \
+                       make autoconf help2man zlib-devel boost boost-devel \
+                       boost-program-options m4ri-devel sqlite-devel \
+                       python3-devel python3-pip python3-setuptools \
+                       python3-numpy graphviz python3-lit git \
+        && pip3 install mypy pytest pylint \
+        && dnf clean -y all \
+        && rm -rf /usr/share/doc /usr/share/doc-base \
+                  /usr/share/man /usr/share/locale /usr/share/zoneinfo \
+        && true
+
+WORKDIR /home
+COPY . /home/cmsh
+WORKDIR /home/cmsh
+
+RUN true \
+        && make distclean cms cmsh typecheck lint check \
+        && true
