@@ -55,11 +55,19 @@ model_t::~model_t() {
 }
 
 void model_t::config_timeout(double max_time) {
-    solver->set_max_time(max_time);
+    if (max_time >= 0) {
+        solver->set_max_time(max_time);
+    } else {
+        solver->set_max_time(std::numeric_limits<double>::max());
+    }
 }
 
 void model_t::config_conflicts(int64_t max_conflicts) {
-    solver->set_max_confl(max_conflicts);
+    if (max_conflicts > 0) {
+        solver->set_max_confl(max_conflicts);
+    } else {
+        solver->set_max_confl(std::numeric_limits<int64_t>::max());
+    }
 }
 
 int model_t::var() {

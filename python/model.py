@@ -331,7 +331,8 @@ class Model:
 
         return result
 
-    def solve(self) -> Optional[bool]:
+    def solve(self, max_conflicts: Optional[int] = None,
+              max_time: Optional[float] = None) -> Optional[bool]:
         """
         Solve the current model. This adds all new clauses to the solver and
         runs CMS under the present assumptions.
@@ -339,6 +340,16 @@ class Model:
         Returns:
             bool: whether or not the model is satisfiable.
         """
+        if max_conflicts:
+            self.solver.config_conflicts(max_conflicts)
+        else:
+            self.solver.config_conflicts(-1)
+
+        if max_time:
+            self.solver.config_timeout(max_time)
+        else:
+            self.solver.config_timeout(-1)
+
         self.sat = self.solver.solve()
         return self.sat
 
