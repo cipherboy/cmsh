@@ -368,6 +368,11 @@ class Vector:
         result, _ = ripple_carry_adder(self, other)
         return result
 
+    def __mul__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
+        if not isinstance(other, (Vector, int, list, tuple)):
+            return NotImplemented
+        return grade_school_multiply(self, other)
+
     def __and__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
@@ -859,6 +864,46 @@ def ripple_carry_adder(left: Union[VectorLike, Vector], right: Union[VectorLike,
         return model.to_vector(result), carry
 
     return result, carry
+
+def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
+    """
+    Implements a grade school multiplication, returning the result.
+
+    Args:
+        left (iterable, int, or Vector): first value to multiply
+        right (iterable, int, or Vector): second value to multiply
+
+    Returns:
+        list or Vector: the output value of the multiply
+    """
+    # Grade school (binary) multiplication works by a shif (<<) and and (&)
+    # strategy.
+    l_list, r_list, model = _parse_args_(left, right)
+
+    result: Union[VectorLike, Vector] = []
+    result_len = len(l_list) + len(r_list)
+    for bit_index, r_bit in enumerate(reversed(r_list)):
+        # Extend and shift at the same step.
+        bits_before = result_len - len(l_list) - bit_index
+        prefix: list = [False]*bits_before
+        suffix: list = [False]*bit_index
+        extended: list = prefix + list(l_list) + suffix
+
+        # Splat our bit across the extended form.
+        anded = splat(r_bit, extended, b_and)
+
+        # Add back in the result.
+        if not result:
+            result = anded
+        else:
+            result, _ = ripple_carry_adder(result, anded)
+
+    assert result is not None
+
+    if model:
+        return model.to_vector(result)
+
+    return result
 
 
 def sum_array(vec):

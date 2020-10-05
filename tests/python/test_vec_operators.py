@@ -19,6 +19,22 @@ def test_op_add():
     assert (int(a) + int(b)) == (4 + int(c))
 
 
+def test_op_mul():
+    mod = cmsh.Model()
+    a = mod.vector(8)
+    b = mod.vector(8)
+    c = mod.vector(8)
+
+    constraint = ((a * b) == (c * 3)) & ((a * b) == 30) & (a > 0) & (a < 3) & (b > 10) & (b < 30) & (c < 15)
+    mod.add_assert(constraint)
+    assert mod.solve()
+
+    assert (int(a) * int(b)) == (3 * int(c))
+    assert int(a) == 2
+    assert int(b) == 15
+    assert int(c) == 10
+
+
 def test_op_and():
     mod = cmsh.Model()
     a = mod.vector(2)
