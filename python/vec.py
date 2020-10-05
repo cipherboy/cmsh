@@ -533,7 +533,7 @@ def _from_arg_(arg: Union[VectorLike, Vector], have_model: bool = False) -> tupl
     return arg, arg.model, True
 
 
-def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[VariableSoft], r_fixed: bool) -> Tuple[List[VariableSoft], List[VariableSoft]]:
+def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[VariableSoft], r_fixed: bool, mismatch_fatal: bool = False) -> Tuple[List[VariableSoft], List[VariableSoft]]:
     """
     On two value functions, validate that the left and right values are of
     similar enough sizes. If not, and the smaller isn't of fixed size, we
@@ -544,6 +544,7 @@ def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[Varia
         l_fixed (bool): whether or not the left value is fixed.
         right (list): values in the right argument.
         r_fixed (bool): whether or not the right value is fixed.
+        mismatch_fatal (bool): whether or not a size mismatch is fatal
 
     Returns:
         tuple (list, list): values in the left and right arguments.
@@ -551,11 +552,11 @@ def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[Varia
     l_len = len(left)
     r_len = len(right)
 
-    if l_fixed and r_fixed and l_len != r_len:
+    if l_fixed and r_fixed and l_len != r_len and mismatch_fatal:
         raise ValueError("Mismatch sizes: %d vs %d" % (l_len, r_len))
-    if l_fixed and l_len < r_len:
+    if l_fixed and l_len < r_len and mismatch_fatal:
         raise ValueError("Value of constant (%d) exceeds size: %d" % (r_len, l_len))
-    if r_fixed and r_len < l_len:
+    if r_fixed and r_len < l_len and mismatch_fatal:
         raise ValueError("Value of constant (%d) exceeds size: %d" % (l_len, r_len))
 
     if l_len < r_len:
@@ -570,7 +571,7 @@ def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[Varia
     return left, right
 
 
-def _parse_args_(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Tuple[List[VariableSoft], List[VariableSoft], Any]:
+def _parse_args_(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], mismatch_fatal: bool = True) -> Tuple[List[VariableSoft], List[VariableSoft], Any]:
     """
     Parse arguments to a two valued Vector function. Ensures both are of the
     same size. Returns a model if present.
@@ -578,6 +579,7 @@ def _parse_args_(left: Union[VectorLike, Vector], right: Union[VectorLike, Vecto
     Args:
         left (list, int, or Vector): left argument.
         right (list, int, or Vector): right argument.
+        mismatch_fatal (bool): whether or not a size mismatch is fatal.
 
     Returns:
         tuple (list, list, Model): values in the left and right arguments, and
@@ -585,7 +587,7 @@ def _parse_args_(left: Union[VectorLike, Vector], right: Union[VectorLike, Vecto
     """
     l_list, l_model, l_fixed = _from_arg_(left)
     r_list, r_model, r_fixed = _from_arg_(right, l_model is not None)
-    l_list, r_list = __validate_size__(l_list, l_fixed, r_list, r_fixed)
+    l_list, r_list = __validate_size__(l_list, l_fixed, r_list, r_fixed, mismatch_fatal)
     model = l_model or r_model
     return l_list, r_list, model
 
@@ -865,20 +867,21 @@ def ripple_carry_adder(left: Union[VectorLike, Vector], right: Union[VectorLike,
 
     return result, carry
 
-def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Union[VectorLike, Vector]:
+def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], truncate: bool = True) -> Union[VectorLike, Vector]:
     """
     Implements a grade school multiplication, returning the result.
 
     Args:
         left (iterable, int, or Vector): first value to multiply
         right (iterable, int, or Vector): second value to multiply
+        truncate (bool): whether or not to truncate the result to the input widths
 
     Returns:
         list or Vector: the output value of the multiply
     """
     # Grade school (binary) multiplication works by a shif (<<) and and (&)
     # strategy.
-    l_list, r_list, model = _parse_args_(left, right)
+    l_list, r_list, model = _parse_args_(left, right, mismatch_fatal=truncate)
 
     result: Union[VectorLike, Vector] = []
     result_len = len(l_list) + len(r_list)
@@ -888,6 +891,10 @@ def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLi
         prefix: list = [False]*bits_before
         suffix: list = [False]*bit_index
         extended: list = prefix + list(l_list) + suffix
+
+        if truncate:
+            extended = extended[len(r_list):]
+            assert len(extended) == len(l_list)
 
         # Splat our bit across the extended form.
         anded = splat(r_bit, extended, b_and)

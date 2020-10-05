@@ -102,7 +102,7 @@ clean:
 
 # Helpers
 lint:
-	pylint build/cmsh
+	pylint --disable=R0914 build/cmsh
 
 typecheck:
 	cd build && ${PYTHON} -m mypy --python-executable ${PYTHON} cmsh
