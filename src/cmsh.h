@@ -190,7 +190,7 @@ namespace cmsh {
             unordered_map<int, bool> solution;
 
             // Whether or not our model has been solved yet.
-            lbool solved = l_False;
+            lbool solved = CMSat::l_False;
 
             // Pointer to our SAT solver instance.
             SATSolver *solver;

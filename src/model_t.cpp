@@ -166,7 +166,7 @@ int model_t::find_constraint(int left, op_t op, int right) {
 
 void model_t::update_solution(constraint_t *con) {
     // If we're not solved, return.
-    if (solved != l_True) {
+    if (solved != CMSat::l_True) {
         return;
     }
 
@@ -461,7 +461,7 @@ lbool model_t::solve(bool only_indep_solution) {
     // Solve the model.
     solved = solver->solve(&lit_assumptions, only_indep_solution);
 
-    if (solved == l_True) {
+    if (solved == CMSat::l_True) {
         // Calculate values for all values determined by the model when the
         // solution has been found.
         extend_solution();
@@ -472,19 +472,19 @@ lbool model_t::solve(bool only_indep_solution) {
 
 inline lbool model_t::to_lbool(bool var) {
     if (var) {
-        return l_True;
+        return CMSat::l_True;
     }
 
-    return l_False;
+    return CMSat::l_False;
 }
 
 inline bool model_t::to_bool(lbool var, bool negate) {
-    if (var == l_True) {
+    if (var == CMSat::l_True) {
         if (negate) {
             return false;
         }
         return true;
-    } else if (var == l_False) {
+    } else if (var == CMSat::l_False) {
         if (negate) {
             return true;
         }
@@ -499,9 +499,9 @@ inline bool model_t::ubv(bool value, bool negated) {
 
 bool model_t::val(int constraint_var) {
     lbool result = lval(constraint_var);
-    if (result == l_True) {
+    if (result == CMSat::l_True) {
         return true;
-    } else if (result == l_False) {
+    } else if (result == CMSat::l_False) {
         return false;
     } else {
         assert(false);
@@ -513,7 +513,7 @@ lbool model_t::lval(int constraint_var) {
     // This version avoids the assert that val(...) has. This lets callers in
     // higher-level language bindings such as Python detect the error and
     // throw an exception rather than asserting.
-    if (solved == l_True) {
+    if (solved == CMSat::l_True) {
         if (constraint_var > 0) {
             if (!solution.contains(constraint_var)) {
                 return l_Undef;
