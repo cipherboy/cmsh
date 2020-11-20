@@ -516,20 +516,20 @@ lbool model_t::lval(int constraint_var) {
     if (solved == CMSat::l_True) {
         if (constraint_var > 0) {
             if (!solution.contains(constraint_var)) {
-                return l_Undef;
+                return CMSat::l_Undef;
             }
 
             return to_lbool(solution[constraint_var]);
         }
 
         if (!solution.contains(-constraint_var)) {
-            return l_Undef;
+            return CMSat::l_Undef;
         }
 
         return to_lbool(!solution[-constraint_var]);
     }
 
-    return l_Undef;
+    return CMSat::l_Undef;
 }
 
 int model_t::num_constraint_vars() {

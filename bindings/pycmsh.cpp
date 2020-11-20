@@ -394,11 +394,11 @@ static PyObject *solve(native_model *self, PyObject *) {
     check_null;
 
     lbool ret = self->model->solve();
-    if (ret == l_True) {
+    if (ret == CMSat::l_True) {
         Py_RETURN_TRUE;
     }
 
-    if (ret == l_False) {
+    if (ret == CMSat::l_False) {
         Py_RETURN_FALSE;
     }
 
@@ -433,9 +433,9 @@ static PyObject *val(native_model *self, PyObject *args, PyObject *kwds) {
 
     lbool result = self->model->lval(constraint_var);
 
-    if (result == l_True) {
+    if (result == CMSat::l_True) {
         Py_RETURN_TRUE;
-    } else if (result == l_False) {
+    } else if (result == CMSat::l_False) {
         Py_RETURN_FALSE;
     } else {
         Py_RETURN_NONE;
