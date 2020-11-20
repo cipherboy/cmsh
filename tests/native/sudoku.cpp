@@ -154,7 +154,7 @@ int main() {
     overlap_grid(&m, grid_tl, 0, 0, grid_c, end, end);
 
     cout << "Starting solving..." << endl;
-    assert(m.solve() == l_True);
+    assert(m.solve() == CMSat::l_True);
     cout << "    ...done solving model with circuit size ("
          << m.num_constraint_vars() << ", " << m.num_constraints()
          << ") and CNF size (" << m.num_cnf_vars() << ", "

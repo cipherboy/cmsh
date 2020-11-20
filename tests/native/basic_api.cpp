@@ -15,10 +15,10 @@ void test_incremental(void) {
 
     m.v_assert(-r2);
 
-    assert(m.solve() == l_True);
+    assert(m.solve() == CMSat::l_True);
 
     m.v_assert(r1);
-    assert(m.solve() == l_False);
+    assert(m.solve() == CMSat::l_False);
 }
 
 void test_values(void) {
@@ -33,7 +33,7 @@ void test_values(void) {
     m.v_assert(-r1);
     m.v_assert(r2);
 
-    assert(m.solve() == l_True);
+    assert(m.solve() == CMSat::l_True);
 
     assert(m.val(l1) == false);
     assert(m.val(l2) == false);
@@ -59,7 +59,7 @@ void test_solve() {
 
     int c1 = m.v_xor(m.v_xor(r1, r2), r3);
 
-    assert(m.solve() == l_True);
+    assert(m.solve() == CMSat::l_True);
 
     assert(m.val(l1) == true);
     assert(m.val(l2) == false);
