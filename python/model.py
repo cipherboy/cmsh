@@ -4,6 +4,7 @@ This module contains the main Module class.
 
 # pylint: disable=line-too-long,no-name-in-module,no-self-use
 
+import functools
 from typing import List, Optional
 
 from ._vec_typing import VariableIs, VariableSoft, VectorLike
@@ -382,3 +383,17 @@ class Model:
         """
         self.solver.delete_model()
         self.solver = None
+
+
+def with_model(func):
+    """
+    Decorator to automatically wrap the specified function with a temporary
+    Model instance.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with Model() as model:
+            all_args = [model] + list(args)
+            return func(*all_args, **kwargs)
+
+    return wrapper
