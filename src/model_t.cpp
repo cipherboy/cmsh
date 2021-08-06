@@ -9,6 +9,7 @@
  * High level bindings for Mate Soos's CryptoMiniSat.
  */
 
+#include <limits>
 #include <set>
 #include "cmsh.h"
 
