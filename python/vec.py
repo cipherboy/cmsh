@@ -7,7 +7,7 @@ import math
 from typing import Any, List, Optional, Tuple, Union
 from ._vec_typing import IVariableIs, VariableSoft, VectorLike
 
-from .var import Variable, b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq
+from .var import Variable, b_and, b_nand, b_or, b_nor, b_not, b_xor, b_lt, b_eq, b_mux
 
 # Due to mypy typing, we occasionally need extra-long function definitions.
 # pylint: disable=line-too-long,too-many-return-statements,too-many-public-methods
@@ -947,23 +947,78 @@ def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLi
     return result
 
 
-def grade_school_divide(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], truncate: bool = True) -> Tuple[Union[VectorLike, Vector], Union[VectorLike, Vector]]:
+def grade_school_divide(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Tuple[Union[VectorLike, Vector], Union[VectorLike, Vector]]:
     """
-    Implements a basic binary division by reversing the multiplication.
+    Implements a binary division algorithm.
+
+
+    Args:
+        left (iterable, int, or Vector): the dividend
+        right (iterable, int, or Vector): the divisor
+
+    Returns:
+        tuple (list or Vector, list or Vector) - the quotient and remainder
+        list or Vector: the output value of the multiply
     """
 
-    l_list, r_list, model = _parse_args_(left, right, mismatch_fatal=truncate)
+    # Negate the divisor before passing it in.
+    l_list, r_list, model = _parse_args_(left, -right, mismatch_fatal=False)
 
-    assert len(l_list) == len(r_list)
+    # We add len(divisor) - 1 zeros to the front of the dividend.
+    div_prefix = [False] * (len(r_list) - 1)
+    dividend = div_prefix
+    dividend.extend(l_list)
 
-    quotient: Union[VectorLike, Vector] = model.vec(len(l_list))
-    remainder: Union[VectorLike, Vector] = model.vec(len(l_list))
+    # We have len(dividend) bits in the quotient and ultimately len(divisor)
+    # bits in the remainder.
+    quotient: Union[VectorLike, Vector] = []
 
-    partial = grade_school_multiply(right, quotient)
-    computed, _ = ripple_carry_adder(partial, remainder)
 
-    model.add_assert(computed == left)
-    model.add_assert(remainder < right)
+    # Compute the quotient one bit at a time, from MSB -> LSB of the dividend.
+    for dividend_index in range(0, len(l_list)):
+        dividend_stage = dividend[dividend_index:dividend_index+len(r_list)]
+
+        # Now, for each bit in the divisor, compute the difference between the
+        # (negated) divisor and the dividend. Carry out (at the end) becomes
+        # the quotient bit.
+        #
+        # We go LSB -> MSB
+        carry_in = True
+        last_stage = []
+        for divisor_index, divisor_bit in enumerate(reversed(r_list)):
+            # We want to pairwise walk divisor and dividend, but because we
+            # need to go LSB -> MSB, we have to reverse our index on our
+            # dividend lookup.
+            dividend_bit = dividend_stage[len(r_list) - 1 - divisor_index]
+            value, carry_out = full_adder(dividend_bit, divisor_bit, carry_in)
+            carry_in = carry_out
+            last_stage.append(value)
+
+        # Because we built last_stage in reverse, we need to reverse it here.
+        # Also, drop the last added stage (at index 0 after reversing) as we
+        # do not need to include it.
+        last_stage = list(reversed(last_stage))
+
+        # Our final carry_in (the carry out of the last adder) value becomes
+        # the computed quotient bit.
+        quotient.append(carry_in)
+
+        # Mux together the this stage's adder output with the quotient, making
+        # sure not to tamper with next quotient bit in the pipeline.
+        for index, last_bit in enumerate(last_stage):
+            mux_index = dividend_index + index
+            dividend[mux_index] = b_mux(
+                dividend[mux_index], # when selector is zero, pull the dividend
+                last_bit, # when selector is one, pull the adder result
+                quotient[-1] # use the last quotient bit as the selector
+            )
+
+    # Remainder is the final quotient bits: all bits in the quotient have
+    # potentially been mux'd with the final adder stage.
+    remainder = dividend[-1 * len(r_list):]
+
+    if model:
+        return model.to_vector(quotient), model.to_vector(remainder)
 
     return quotient, remainder
 

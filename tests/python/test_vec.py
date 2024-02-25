@@ -96,14 +96,6 @@ def test_div_expensive():
             negated = mod.negate_solution(a.variables + b.variables + answer_quotient.variables + answer_remainder.variables)
             mod.add_assert(negated)
 
-            while mod.solve():
-                assert int(a) == left
-                assert int(b) == right
-                assert left == (((int(answer_quotient) * right) + int(answer_remainder)) & ((1 << k) - 1))
-
-                negated = mod.negate_solution(a.variables + b.variables + answer_quotient.variables + answer_remainder.variables)
-                mod.add_assert(negated)
-
             assert not mod.solve()
 
 

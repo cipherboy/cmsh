@@ -417,6 +417,30 @@ def b_ge(left: Union[bool, Variable], right: Union[bool, Variable]) -> Union[boo
     """
     return b_or(b_eq(left, right), left)
 
+
+def b_mux(zero: Union[bool, Variable],
+          one: Union[bool, Variable],
+          selector: Union[bool, Variable]) -> Union[bool, Variable]:
+    """
+    Computes the binary multiplexing (selecting) between a zero and one with a
+    given selector bit.
+
+    Args:
+        zero (bool or Variable): value to return when selector is zero
+        one (bool or Variable): value to return when selector is one
+        selector (bool or variable): selects which value to return
+
+    Returns:
+        bool or Variable: the result of the operation.
+    """
+    if isinstance(selector, bool):
+        if selector:
+            return one
+        return zero
+
+    return b_or(b_and(selector, one), b_and(b_not(selector), zero))
+
+
 def v_and(left: Variable, right: Variable) -> Variable:
     """
     Computes the binary AND between left and right operands.
