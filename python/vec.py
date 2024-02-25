@@ -368,6 +368,12 @@ class Vector:
         result, _ = ripple_carry_adder(self, other)
         return result
 
+    def __sub__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
+        if not isinstance(other, (Vector, int, list, tuple)):
+            return NotImplemented
+        result, _ = ripple_borrow_subtractor(self, other)
+        return result
+
     def __mul__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
@@ -877,6 +883,23 @@ def ripple_carry_adder(left: Union[VectorLike, Vector], right: Union[VectorLike,
         return model.to_vector(result), carry
 
     return result, carry
+
+
+def ripple_borrow_subtractor(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector]) -> Tuple[Union[VectorLike, Vector], VariableSoft]:
+    """
+    Implements a ripple borrow subtractor, returning the result and the borrow bit.
+
+    Args:
+        left (iterable, int, or Vector): first value to subtract
+        right (iterable, int, or Vector): second value to subtract
+
+    Returns:
+        tuple (list or Vector, bool or Variable): the output value and the
+        borrow out.
+    """
+    result, carry = ripple_carry_adder(left, -right, carry=True)
+    return result, -carry
+
 
 def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], truncate: bool = True) -> Union[VectorLike, Vector]:
     """
