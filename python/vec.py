@@ -21,7 +21,7 @@ class Vector:
     hash_code: int
     count: int
 
-    def __init__(self, model, width: Optional[int] = None, vector: Union['Vector', IVariableIs] = None):
+    def __init__(self, model, width: Optional[int] = None, vector: Union['Vector', IVariableIs, None] = None):
         """
         Initialize a new Vector object. Either specify width or vector, but not
         both. When width is specified, creates a new Vector with width number
@@ -273,7 +273,7 @@ class Vector:
         new_vec = self.variables[amount:] + [filler]*amount
         return self.model.to_vector(new_vec)
 
-    def shiftr(self, amount: int = 1, filler: VariableSoft = None) -> Union[VectorLike, 'Vector']:
+    def shiftr(self, amount: int = 1, filler: Optional[VariableSoft] = None) -> Union[VectorLike, 'Vector']:
         """
         Create a new Vector representing this one shifted right by amount
         bits, optionally filling in with filler bits (when not None). This
@@ -485,7 +485,7 @@ class Vector:
         """
         self.count += 1
         self.variables = self.variables[0:index] + [obj] + self.variables[index:]
-        self.hash_code = tuple(self.variables).__hash__()
+        self.hash_code = hash(tuple(self.variables))
 
     def __hash__(self) -> int:
         return self.hash_code
@@ -553,11 +553,11 @@ def __validate_size__(left: List[VariableSoft], l_fixed: bool, right: List[Varia
     r_len = len(right)
 
     if l_fixed and r_fixed and l_len != r_len and mismatch_fatal:
-        raise ValueError("Mismatch sizes: %d vs %d" % (l_len, r_len))
+        raise ValueError(f"Mismatch sizes: {l_len} vs {r_len}")
     if l_fixed and l_len < r_len and mismatch_fatal:
-        raise ValueError("Value of constant (%d) exceeds size: %d" % (r_len, l_len))
+        raise ValueError(f"Value of constant ({r_len}) exceeds size: {l_len}")
     if r_fixed and r_len < l_len and mismatch_fatal:
-        raise ValueError("Value of constant (%d) exceeds size: %d" % (l_len, r_len))
+        raise ValueError(f"Value of constant ({l_len}) exceeds size: {r_len}")
 
     if l_len < r_len:
         l_prefix: List[VariableSoft] = [False] * (r_len - l_len)

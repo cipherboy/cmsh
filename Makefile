@@ -53,7 +53,7 @@ build/.objects:
 	mkdir -p build/.objects
 
 cmslibs: dirs
-	cp -r ${CMS}/cmsat5-src/cryptominisat5 build/include/
+	cp -r ${CMS}/include/cryptominisat5 build/include/
 	cp -r ${CMS}/lib/libcryptominisat5.so* build/cmsh/
 
 native: dirs build/cmsh/libcmsh.so build/cmsh/_native${PYEXT}
@@ -81,6 +81,7 @@ test: check
 check: check-native
 	build/basic_api
 	build/sudoku
+	${PYTHON} -c 'import pytest' || ${PYTHON} -m pip install --user pytest
 	PYTHONPATH=build ${PYTHON} -m pytest --ignore=msoos_cryptominisat
 
 check-native: cmsh build/basic_api build/sudoku
@@ -102,9 +103,11 @@ clean:
 
 # Helpers
 lint:
+	${PYTHON} -c 'import pylint' || ${PYTHON} -m pip install --user pylint
 	${PYTHON} -m pylint --disable=R0914,E1136 build/cmsh
 
 typecheck:
+	${PYTHON} -c 'import mypy' || ${PYTHON} -m pip install --user mypy
 	cd build && ${PYTHON} -m mypy --python-executable ${PYTHON} cmsh
 	MYPYPATH="build" ${PYTHON} -m mypy --python-executable ${PYTHON} --ignore-missing-imports tests/python
 

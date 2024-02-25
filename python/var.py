@@ -119,7 +119,7 @@ class Variable:
             raise TypeError(msg)
 
         if not isinstance(other, (Variable, bool)):
-            msg = "Can't compare Variable with %s" % type(other)
+            msg = f"Can't compare Variable with {type(other)}"
             raise TypeError(msg)
         return b_eq(self, other)
 
@@ -131,7 +131,7 @@ class Variable:
             raise TypeError(msg)
 
         if not isinstance(other, (Variable, bool)):
-            msg = "Can't compare Variable with %s" % type(other)
+            msg = f"Can't compare Variable with {type(other)}"
             raise TypeError(msg)
         return b_ne(self, other)
 

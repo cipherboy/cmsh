@@ -84,7 +84,7 @@ namespace cmsh {
             // Operator for checking whether or not two 'constraint_t's are
             // equal. This is done on the basis of left, op, and right
             // variables. value is ignored.
-            bool operator==(const constraint_t& other);
+            bool operator==(const constraint_t& other) const;
 
             // A hash function for this class. Allows us to implement a
             // hashable interface and put constraint_t directly into a

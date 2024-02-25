@@ -42,7 +42,7 @@ void constraint_t::add(model_t *m) {
     tseitin(m);
 }
 
-bool constraint_t::operator==(const constraint_t& other) {
+bool constraint_t::operator==(const constraint_t& other) const {
     // Two constraint_t instances are equal <=> the operands are equal and
     // the operator are equal. The output of the gate may or may not be
     // present in either of these instances, so ignore it in this check.

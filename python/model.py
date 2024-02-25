@@ -2,7 +2,7 @@
 This module contains the main Module class.
 """
 
-# pylint: disable=line-too-long,no-name-in-module,no-self-use
+# pylint: disable=line-too-long,no-name-in-module
 
 import functools
 from typing import List, Optional
