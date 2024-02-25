@@ -632,6 +632,9 @@ static PyTypeObject native_model_type = {
 #if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 8
     0, // tp_print
 #endif
+#if PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION == 12
+    0, // tp_watched
+#endif
 };
 
 
