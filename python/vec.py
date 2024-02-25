@@ -373,6 +373,17 @@ class Vector:
             return NotImplemented
         return grade_school_multiply(self, other)
 
+    def __truediv__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
+        if not isinstance(other, (Vector, int, list, tuple)):
+            return NotImplemented
+        quotient, _ = grade_school_divide(self, other)
+        return quotient
+
+    def __divmod__(self, other: Union[VectorLike, 'Vector']) -> Tuple[Union[VectorLike, 'Vector'], Union[VectorLike, 'Vector']]:
+        if not isinstance(other, (Vector, int, list, tuple)):
+            return NotImplemented
+        return grade_school_divide(self, other)
+
     def __and__(self, other: Union[VectorLike, 'Vector']) -> Union[VectorLike, 'Vector']:
         if not isinstance(other, (Vector, int, list, tuple)):
             return NotImplemented
@@ -879,7 +890,7 @@ def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLi
     Returns:
         list or Vector: the output value of the multiply
     """
-    # Grade school (binary) multiplication works by a shif (<<) and and (&)
+    # Grade school (binary) multiplication works by a shift (<<) and and (&)
     # strategy.
     l_list, r_list, model = _parse_args_(left, right, mismatch_fatal=truncate)
 
@@ -911,6 +922,27 @@ def grade_school_multiply(left: Union[VectorLike, Vector], right: Union[VectorLi
         return model.to_vector(result)
 
     return result
+
+
+def grade_school_divide(left: Union[VectorLike, Vector], right: Union[VectorLike, Vector], truncate: bool = True) -> Tuple[Union[VectorLike, Vector], Union[VectorLike, Vector]]:
+    """
+    Implements a basic binary division by reversing the multiplication.
+    """
+
+    l_list, r_list, model = _parse_args_(left, right, mismatch_fatal=truncate)
+
+    assert len(l_list) == len(r_list)
+
+    quotient: Union[VectorLike, Vector] = model.vec(len(l_list))
+    remainder: Union[VectorLike, Vector] = model.vec(len(l_list))
+
+    partial = grade_school_multiply(right, quotient)
+    computed, _ = ripple_carry_adder(partial, remainder)
+
+    model.add_assert(computed == left)
+    model.add_assert(remainder < right)
+
+    return quotient, remainder
 
 
 def sum_array(vec):

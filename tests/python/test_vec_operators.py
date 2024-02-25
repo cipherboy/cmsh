@@ -38,6 +38,25 @@ def test_op_mul():
     assert not mod.solve()
 
 
+def test_op_div():
+    mod = cmsh.Model()
+    a = mod.vector(16)
+    b = mod.vector(16)
+    c = mod.vector(16)
+
+    constraint = ((a / b) == (c * 3)) & ((a / b) == 6) & (a > 29) & (a < 31) & (b > 3) & (b < 8) & (c < 4) & (c > 1)
+    mod.add_assert(constraint)
+    assert mod.solve()
+
+    assert (int(a) / int(b)) == (int(c) * 3)
+    assert int(a) == 30
+    assert int(b) == 5
+    assert int(c) == 2
+
+    mod.add_assert((a != 30) | (b != 5) | (c != 2))
+    assert not mod.solve()
+
+
 def test_op_and():
     mod = cmsh.Model()
     a = mod.vector(2)

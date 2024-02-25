@@ -48,6 +48,42 @@ def test_mul_extensive():
             assert not mod.solve()
 
 
+def test_div_expensive():
+    k = 4
+    for left in range(0, 1<<k):
+        for right in range(1, 1<<k):
+            mod = cmsh.Model()
+            a = mod.vec(k)
+            b = mod.vec(k)
+            answer_quotient = mod.vec(k)
+            answer_remainder = mod.vec(k)
+
+            ab_quotient, ab_remainder = divmod(a, b)
+
+            constraint = (answer_quotient == ab_quotient) & (answer_remainder == ab_remainder) & (a == left) & (b == right)
+            mod.add_assert(constraint)
+            assert mod.solve()
+
+            lr_quotient, lr_remainder = divmod(left, right)
+
+            assert int(a) == left
+            assert int(b) == right
+            assert left == (((int(answer_quotient) * right) + int(answer_remainder)) & ((1 << k) - 1))
+
+            negated = mod.negate_solution(a.variables + b.variables + answer_quotient.variables + answer_remainder.variables)
+            mod.add_assert(negated)
+
+            while mod.solve():
+                assert int(a) == left
+                assert int(b) == right
+                assert left == (((int(answer_quotient) * right) + int(answer_remainder)) & ((1 << k) - 1))
+
+                negated = mod.negate_solution(a.variables + b.variables + answer_quotient.variables + answer_remainder.variables)
+                mod.add_assert(negated)
+
+            assert not mod.solve()
+
+
 def test_subindex():
     mod = cmsh.Model()
     a = mod.vec(10)
