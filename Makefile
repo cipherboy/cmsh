@@ -69,7 +69,7 @@ build/.objects/model_t.o: src/model_t.cpp src/cmsh.h
 	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSFLAGS} -c src/model_t.cpp -o build/.objects/model_t.o
 
 build/cmsh/_native${PYEXT}: bindings/pycmsh.cpp build/cmsh/libcmsh.so
-	${CXX} ${COMPILEFLAGS} ${DISABLEDWARNINGS} ${WARNINGFLAGS} ${CMSFLAGS} ${CMSHFLAGS} ${PYTHONFLAGS} -shared bindings/pycmsh.cpp -o build/cmsh/_native${PYEXT}
+	${CXX} bindings/pycmsh.cpp ${COMPILEFLAGS} ${DISABLEDWARNINGS} ${WARNINGFLAGS} ${CMSHFLAGS} ${CMSFLAGS} ${PYTHONFLAGS} -shared -o build/cmsh/_native${PYEXT}
 
 module: native python/*.py tools/setup.py
 	cp python/*.py build/cmsh/
@@ -87,10 +87,10 @@ check: check-native
 check-native: cmsh build/basic_api build/sudoku
 
 build/basic_api: tests/native/basic_api.cpp
-	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} tests/native/basic_api.cpp -o build/basic_api
+	${CXX} tests/native/basic_api.cpp ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} ${CMSFLAGS} -o build/basic_api
 
 build/sudoku: tests/native/sudoku.cpp
-	${CXX} ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} tests/native/sudoku.cpp -o build/sudoku
+	${CXX} tests/native/sudoku.cpp ${WARNINGFLAGS} ${COMPILEFLAGS} ${CMSHFLAGS} ${CMSFLAGS} -o build/sudoku
 
 # Clean targets
 distclean: clean
