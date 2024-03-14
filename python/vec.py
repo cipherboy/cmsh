@@ -536,6 +536,8 @@ def _from_arg_(arg: Union[VectorLike, Vector], have_model: bool = False) -> tupl
     # ret: [Vector/list/tuple], model, is_fixed
 
     if isinstance(arg, int):
+        if arg < 0:
+            raise ValueError(f"unable to convert negative int ({arg}) to array: negate manually at the desired width via l_not")
         value = list(map(lambda x: bool(int(x)), bin(arg)[2:]))
         return value, None, False
 
